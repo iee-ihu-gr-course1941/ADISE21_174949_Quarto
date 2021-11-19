@@ -163,18 +163,18 @@ type UserId struct {
 
 //TODO: rethink active/inactive players thing
 type Game struct {
-	GameId         string       `json:"game_id"`
-	ActivePlayers  []*UserId    `json:"active_players"`
-	InvitedPlayers []*UserId    `json:"invited_players"`
-	NextPlayer     *UserId      `json:"next_player"` //TODO: move to GameState
-	NextPiece      *QuartoPiece `json:"next_piece"`  //TODO: move to GameState
-	ActivityStatus bool         `json:"activity_status"`
-	State          *GameState   `json:"game_state"`
-	Winner         *UserId      `json:"winner"`
+	GameId         string     `json:"game_id"`
+	ActivePlayers  []*UserId  `json:"active_players"`
+	InvitedPlayers []*UserId  `json:"invited_players"`
+	ActivityStatus bool       `json:"activity_status"`
+	State          *GameState `json:"game_state"`
+	Winner         *UserId    `json:"winner"`
 }
 
 //TODO: fill in with fields
 type GameState struct {
+	NextPlayer   *UserId            `json:"next_player"`
+	NextPiece    *QuartoPiece       `json:"next_piece"`
 	Board        [4][4]*QuartoPiece `json:"board"`
 	UnusedPieces [16]*QuartoPiece   `json:"unused_pieces"`
 }
@@ -266,9 +266,10 @@ func setupRouter() http.Handler {
 	// Set up routes for game API
 	gameRouter.HandleFunc("", createGame)
 	//gameRouter.HandleFunc("/new", createGame) //not REST-y
-	gameRouter.HandleFunc("/{game_id}", getGameState)
+	gameRouter.HandleFunc("/{game_id}", getGame)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame)
+	gameRouter.HandleFunc("/{game_id}/state", getGameState)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
 	return router
 }
