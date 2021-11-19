@@ -190,3 +190,15 @@ var testUsers []*User
 var testUserIds []*UserId
 var testPlayers []*UserId
 var testGames []*Game
+
+// Database interface
+type QuartoStorage interface {
+	AddUser(*User) error
+	AddUserId(*UserId) error
+	GetUserId(userid string) (*UserId, error)
+	AddGame(*Game) error
+	GetGame(gameid string) (*Game, error)
+	GetAllGames() ([]*Game, error)
+	InviteUser(userid string, gameid string) error
+	JoinUser(userid string, gameid string) error
+}
