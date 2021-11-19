@@ -220,6 +220,10 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func getGame(w http.ResponseWriter, r *http.Request) {
+	// Empty for now
+}
+
 func getGameState(w http.ResponseWriter, r *http.Request) {
 	// Empty for now
 }
