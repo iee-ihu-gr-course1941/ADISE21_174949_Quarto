@@ -28,6 +28,9 @@ type QuartoStorage interface {
 	AddGame(*Game) error
 	GetGame(gameid string) (*Game, error)
 	GetAllGames() ([]*Game, error)
+	InviteUser(userid string) error
+	JoinUser(userid string) error
+	
 }
 ```
 
