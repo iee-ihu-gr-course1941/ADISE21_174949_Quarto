@@ -210,12 +210,12 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	testUsers = append(testUsers, u)
+	testUsers = append(testUsers, u) //AddUser(u)
 	uid := &UserId{
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
-	testUserIds = append(testUserIds, uid)
+	testUserIds = append(testUserIds, uid) //AddUserId(uid)
 	json.NewEncoder(w).Encode(uid)
 	return
 }
@@ -229,7 +229,29 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	log.Println("createGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//user that creates the game
+	uid := &UserId{}
+	err := json.NewDecoder(r.Body).Decode(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	//create a new game instance
+	g := &Game{
+		GameId:         shortid.MustGenerate(),
+		ActivityStatus: true,
+		State: &GameState{
+			Board:        EmptyBoard,
+			UnusedPieces: AllQuartoPieces,
+		},
+	}
+	//automatically invite the game creator to the game
+	g.InvitedPlayers = append(g.InvitedPlayers, uid)
+	testGames = append(testGames, g) //AddGame(g)
+	json.NewEncoder(w).Encode(g)
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
