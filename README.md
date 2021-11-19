@@ -7,6 +7,18 @@ The following is a non-exhaustive list of technology used to build this
 - `gorilla/mux` for setting up routes
 - built-in Go testing harness
 
+## Running Application
+from the root of the repository run:
+```
+go run main.go vars.go
+```
+
+## Running Tests
+from the root of the repository run:
+```
+go test -v
+```
+
 # Usage
 how to use with curl
 
