@@ -64,7 +64,43 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	log.Println("inviteToGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+
+	//user to be invited
+	var uid *UserId = nil
+	//get the name of the user to be invited from path param
+	inviteeName, _ := params["username"]
+	//see if user exists in the user database
+	for idx, u := range testUserIds { //GetUserId(u)
+		if u.UserName == inviteeName {
+			uid = testUserIds[idx]
+			break
+		}
+	}
+	//return error if user with username can't be found
+	if uid == nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(UserNotFound))
+		return
+	}
+	//append player to game if game exists
+	for _, g := range testGames { //InviteUser(u)
+		if g.GameId == gameId {
+			g.InvitedPlayers = append(g.InvitedPlayers, uid)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(MsgSuccess))
+			return
+		}
+	}
+	//return error if game doesn't exist
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte(GameNotFound))
+	return
 }
 
 func joinGame(w http.ResponseWriter, r *http.Request) {
