@@ -109,6 +109,15 @@ var testUserIds []*UserId
 var testPlayers []*UserId
 var testGames []*Game
 ```
+example
+```go
+type MockDB struct {
+	Users []*User
+	UserIds []*UserId
+	Players []*UserId
+	Games []*Game
+}
+```
 
 ## Refactor tests actions to be reusable
 example of snippet that could be made reusable
@@ -133,3 +142,6 @@ if err != nil {
 }
 testServer.Close()
 ```
+
+## Split in packages
+already mentioned above in some places but the service should be split into packages
