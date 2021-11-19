@@ -194,7 +194,7 @@ type QuartoPiece struct {
 	Round  bool
 }
 
-//TODO: replace with database(s)
+//TODO: refactor into mock database
 var testUsers []*User
 var testUserIds []*UserId
 var testPlayers []*UserId
