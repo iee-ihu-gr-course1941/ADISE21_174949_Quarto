@@ -133,10 +133,10 @@ func setupRouter() http.Handler {
 	gameRouter := router.PathPrefix("/game").Subrouter()
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser)
-	//userRouter.HandleFunc("/register", createUser) //not REST-y
+	userRouter.HandleFunc("/register", createUser) //not REST-y
 	// Set up routes for game API
 	gameRouter.HandleFunc("", createGame)
-	//gameRouter.HandleFunc("/new", createGame) //not REST-y
+	gameRouter.HandleFunc("/new", createGame) //not REST-y
 	gameRouter.HandleFunc("/{game_id}", getGame)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame)
