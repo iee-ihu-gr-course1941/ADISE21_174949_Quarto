@@ -119,6 +119,27 @@ type MockDB struct {
 	Games []*Game
 }
 ```
+example of mock usage
+
+before
+```go
+for _, g := range testGames {
+	if g.GameId == gameId {
+		json.NewEncoder(w).Encode(g)
+	}
+}
+```
+
+after
+```go
+g, err := gamedb.GetGame(gameId)
+if err != nil {
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(BadReq))
+	return
+}
+json.NewEncoder(w).Encode(g)
+```
 
 ## Refactor tests actions to be reusable
 example of snippet that could be made reusable
