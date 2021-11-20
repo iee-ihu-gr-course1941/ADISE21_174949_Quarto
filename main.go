@@ -30,7 +30,18 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	log.Println("getGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+	for _, g := range testGames {
+		if g.GameId == gameId {
+			json.NewEncoder(w).Encode(g)
+		}
+	}
+	return
 }
 
 func getGameState(w http.ResponseWriter, r *http.Request) {
