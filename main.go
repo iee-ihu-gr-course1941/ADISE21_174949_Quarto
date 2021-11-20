@@ -138,16 +138,16 @@ func setupRouter() http.Handler {
 	// Set up subrouter for game functions
 	gameRouter := router.PathPrefix("/game").Subrouter()
 	// Set up routes for user API
-	userRouter.HandleFunc("", createUser)
-	userRouter.HandleFunc("/register", createUser) //not REST-y
+	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
+	userRouter.HandleFunc("/register", createUser).Methods(http.MethodPost) //not REST-y
 	// Set up routes for game API
-	gameRouter.HandleFunc("", createGame)
-	gameRouter.HandleFunc("/new", createGame) //not REST-y
-	gameRouter.HandleFunc("/{game_id}", getGame)
-	gameRouter.HandleFunc("/{game_id}/join", joinGame)
-	gameRouter.HandleFunc("/{game_id}/play", playInGame)
-	gameRouter.HandleFunc("/{game_id}/state", getGameState)
-	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame)
+	gameRouter.HandleFunc("", createGame).Methods(http.MethodPost)
+	gameRouter.HandleFunc("/new", createGame).Methods(http.MethodPost) //not REST-y
+	gameRouter.HandleFunc("/{game_id}", getGame).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/{game_id}/join", joinGame).Methods(http.MethodPost)
+	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)
+	gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
+	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame).Methods(http.MethodPost)
 	return router
 }
 
