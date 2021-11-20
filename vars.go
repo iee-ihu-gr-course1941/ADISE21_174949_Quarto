@@ -188,8 +188,13 @@ type QuartoPiece struct {
 //TODO: refactor into mock database
 var testUsers []*User
 var testUserIds []*UserId
-var testPlayers []*UserId
 var testGames []*Game
+
+func WipeState() {
+	testUsers = []*User{}
+	testUserIds = []*UserId{}
+	testGames = []*Game{}
+}
 
 // Database interface
 type QuartoStorage interface {
