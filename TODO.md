@@ -108,7 +108,6 @@ refactor into mock in its own package that implements `QuartoStorage`
 ```go
 var testUsers []*User
 var testUserIds []*UserId
-var testPlayers []*UserId
 var testGames []*Game
 ```
 example
@@ -147,3 +146,6 @@ testServer.Close()
 
 ## Split in packages
 already mentioned above in some places but the service should be split into packages
+
+## User checks
+Handle same user being able to be added twice to stuff
