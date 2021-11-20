@@ -28,7 +28,7 @@ run:
 curl -X POST\
 	-H "Content-Type: application/json"\
 	-d '{"username": "someuser", "password": "verybigsecret"}'\
-	localhost:8000/user/register
+	localhost:8000/user
 ```
 
 returns:
@@ -41,6 +41,16 @@ or if you have `jq` installed you can extract the `user_id` value using:
 curl -X POST\
 	-H "Content-Type: application/json"\
 	-d '{"username": "someuser", "password": "verybigsecret"}'\
-	localhost:8000/user/register | jq '.user_id'
+	localhost:8000/user | jq '.user_id'
 ```
 
+## Create Game
+run:
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"user_id": "G8boeMc7g"}' localhost:8000/game
+```
+
+returns:
+```json
+{"game_id":"NvFtm757g","players":[{"username":"","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
+```
