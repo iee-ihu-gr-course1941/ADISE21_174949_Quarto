@@ -10,8 +10,36 @@ import (
 	"testing"
 )
 
-// Test server
+// Test HTTP server
 var testServer *httptest.Server = httptest.NewServer(setupRouter())
+
+func TestGetGame(t *testing.T) {
+	// clear global storage
+	WipeState()
+	// change URL, add the name of the user to be invited
+	testURL = testServer.URL + "/game/" + g.GameId
+	// do a simple Post request with the above data
+	res, err = http.Get(testURL)
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	t.Log(string(body))
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+}
 
 // Function for creating a user for use only outside TestCreateUser
 func randomUserCreation(t *testing.T) *UserId {
@@ -220,8 +248,7 @@ func TestCreateGame(t *testing.T) {
 
 //TODO: figure out why this test break while the application works fine
 func TestInviteToGame(t *testing.T) {
-	t.SkipNow() //TODO: remove when troubleshooting test
-
+	// clear global storage
 	WipeState()
 	// create a game which also creates random user
 	g := gameCreation(t)
@@ -234,7 +261,6 @@ func TestInviteToGame(t *testing.T) {
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "` + invPlayer1.UserName + `", "user_id": "` + invPlayer1.UserId + `"}`)
 	// do a simple Post request with the above data
-	t.Log("tURL", testURL)
 	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
 	// check for request errors
 	if err != nil {
@@ -243,7 +269,7 @@ func TestInviteToGame(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 	// log response
-	//t.Log("res", res)
+	t.Log("res", res)
 
 	// save response body to check later
 	body, err := io.ReadAll(res.Body)
@@ -257,6 +283,33 @@ func TestInviteToGame(t *testing.T) {
 	if string(body) != MsgSuccess {
 		t.Error("inviting user did not yield success message")
 	}
+
+	// change URL, add the name of the user to be invited
+	testURL = testServer.URL + "/game/" + g.GameId
+	// do a simple Post request with the above data
+	res, err = http.Get(testURL)
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// log response
+	t.Log("res", res)
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	t.Log(string(body))
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+
 	if len(testGames[0].InvitedPlayers) <= 1 || cap(testGames[0].InvitedPlayers) <= 1 {
 		t.Error("second player wasn't added to the invitation list")
 	} else {

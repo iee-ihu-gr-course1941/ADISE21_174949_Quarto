@@ -23,7 +23,9 @@ import (
 var gid string
 
 func TestAllReal(t *testing.T) {
-
+	t.SkipNow()
+	// clear the global storage
+	WipeState()
 	// define URL
 	testURL := "http://localhost:8000" + "/user"
 	// create some data in the form of an io.Reader from a string of json
@@ -156,6 +158,10 @@ func TestAllReal(t *testing.T) {
 }
 
 func TestGetGame(t *testing.T) {
+	t.SkipNow()
+	// clear the global storage
+	WipeState()
+	// define URL
 	testURL := "http://localhost:8000" + "/game/" + gid
 	res, err := http.Get(testURL)
 	// check for request errors
