@@ -7,8 +7,14 @@ import (
 type MockDB struct {
 	Users   []*User
 	UserIds []*UserId
-	Players []*UserId
 	Games   []*Game
+}
+
+var mymockdb MockDB = nil
+
+func NewMockDB() (MockDB, error) {
+	mymockdb = &MockDB{}
+	return &MockDB{}, nil
 }
 
 func (m *MockDB) AddUser(u *User) error {
