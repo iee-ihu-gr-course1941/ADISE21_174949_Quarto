@@ -1,4 +1,4 @@
-package mockdb
+package mock
 
 import (
 	"fmt"
@@ -45,6 +45,15 @@ func (m *MockDB) GetGame(gameid string) (*Game, error) {
 	for _, g := range m.Games {
 		if g.GameId == gameid {
 			return g, nil
+		}
+	}
+	return nil, fmt.Error("game with id", gameid, "not found")
+}
+
+func (m *MockDB) GetGameState(gameid string) (*GameState, error) {
+	for _, g := range m.Games {
+		if g.GameId == gameid {
+			return g.State, nil
 		}
 	}
 	return nil, fmt.Error("game with id", gameid, "not found")
