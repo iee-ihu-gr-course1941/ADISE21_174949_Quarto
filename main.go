@@ -3,11 +3,26 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	. "github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
 	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
 	"os"
 )
+
+//TODO: use mock db instead
+var testUsers []*User
+var testUserIds []*UserId
+var testGames []*Game
+
+func WipeState() {
+	testUsers = []*User{}
+	testUserIds = []*UserId{}
+	testGames = []*Game{}
+}
+
+var gamedb QuartoStorage
 
 func createUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("createUser called")
@@ -167,6 +182,8 @@ func main() {
 	httpPort := setupHTTPPort()
 	// Set up the router for the API
 	router := setupRouter()
+	// Set up storage
+	gamedb, _ = mock.NewMockDB()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error

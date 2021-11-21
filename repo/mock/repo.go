@@ -2,6 +2,7 @@ package mock
 
 import (
 	"fmt"
+	. "github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 )
 
 type MockDB struct {
@@ -10,9 +11,10 @@ type MockDB struct {
 	Games   []*Game
 }
 
-var mymockdb MockDB = nil
+//TODO: make sure this needs to be a pointer
+var mymockdb *MockDB = nil
 
-func NewMockDB() (MockDB, error) {
+func NewMockDB() (*MockDB, error) {
 	mymockdb = &MockDB{}
 	return &MockDB{}, nil
 }
@@ -33,7 +35,7 @@ func (m *MockDB) GetUserId(userid string) (*UserId, error) {
 			return u, nil
 		}
 	}
-	return nil, fmt.Error("user with id", userid, "not found")
+	return nil, fmt.Errorf("user with id", userid, "not found")
 }
 
 func (m *MockDB) AddGame(g *Game) error {
@@ -47,7 +49,7 @@ func (m *MockDB) GetGame(gameid string) (*Game, error) {
 			return g, nil
 		}
 	}
-	return nil, fmt.Error("game with id", gameid, "not found")
+	return nil, fmt.Errorf("game with id", gameid, "not found")
 }
 
 func (m *MockDB) GetGameState(gameid string) (*GameState, error) {
@@ -56,7 +58,7 @@ func (m *MockDB) GetGameState(gameid string) (*GameState, error) {
 			return g.State, nil
 		}
 	}
-	return nil, fmt.Error("game with id", gameid, "not found")
+	return nil, fmt.Errorf("game with id", gameid, "not found")
 }
 
 func (m *MockDB) GetAllGames() ([]*Game, error) {
@@ -64,36 +66,37 @@ func (m *MockDB) GetAllGames() ([]*Game, error) {
 }
 
 func (m *MockDB) InviteUser(userid string, gameid string) error {
-	u, err := GetUserId(userid)
+	u, err := m.GetUserId(userid)
 	if err != nil {
 		return err
 	}
-	g, err := GetGame(gameid)
+	g, err := m.GetGame(gameid)
 	if err != nil {
 		return err
 	}
-	g.InvitedUsers = append(g.InvitedUsers, u)
+	g.InvitedPlayers = append(g.InvitedPlayers, u)
 	return nil
 }
 
 func (m *MockDB) JoinUser(userid string, gameid string) error {
-	u, err := GetUserId(userid)
+	u, err := m.GetUserId(userid)
 	if err != nil {
 		return err
 	}
-	g, err := GetGame(gameid)
+	g, err := m.GetGame(gameid)
 	if err != nil {
 		return err
 	}
 	for _, ip := range g.InvitedPlayers {
 		if cap(g.ActivePlayers) == MaxPlayers {
-			return fmt.Error("couldn't join because game is full")
+			return fmt.Errorf("couldn't join because game is full")
 		} else if cap(g.ActivePlayers) > MaxPlayers {
-			return fmt.Error("I honestly don't know how this happened")
-		} else {
+			return fmt.Errorf("I honestly don't know how this happened")
+		} else if u.UserId == ip.UserId {
 			g.ActivePlayers = append(g.ActivePlayers, u)
 			g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
 			return nil
 		}
 	}
+	return fmt.Errorf("player with id", userid, "is not invited to game with id", gameid)
 }

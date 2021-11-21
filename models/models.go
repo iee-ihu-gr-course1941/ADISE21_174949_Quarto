@@ -1,4 +1,4 @@
-package main
+package models
 
 // Variable of all Quarto pieces
 var AllQuartoPieces = [16]*QuartoPiece{
@@ -183,17 +183,6 @@ type QuartoPiece struct {
 	Short  bool
 	Hollow bool
 	Round  bool
-}
-
-//TODO: refactor into mock database
-var testUsers []*User
-var testUserIds []*UserId
-var testGames []*Game
-
-func WipeState() {
-	testUsers = []*User{}
-	testUserIds = []*UserId{}
-	testGames = []*Game{}
 }
 
 // Database interface
