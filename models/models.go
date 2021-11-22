@@ -1,4 +1,4 @@
-package main
+package models
 
 // Variable of all Quarto pieces
 var AllQuartoPieces = [16]*QuartoPiece{
@@ -116,30 +116,6 @@ var EmptyBoard = [4][4]*QuartoPiece{
 // Constant for maximum amount of players per game
 const MaxPlayers int = 2
 
-// Constant for Bad Request
-const BadReq string = `{"error": "bad request"}`
-
-// Constant for Not Found
-const NotFound string = `{"error": "not found"}`
-
-// Constant for Unauthorized
-const Unauth string = `{"error": "unauthorized"}`
-
-// Constant for Unauthorized
-const ServerError string = `{"error": "internal server error"}`
-
-// Constant for success message
-const MsgSuccess string = `{"message": "success"}`
-
-// Constant for User Not Found
-const UserNotFound string = `{"error": "user not found"}`
-
-// Constant for Unauthorized
-const UserUnauth string = `{"error": "user unauthorized"}`
-
-// Constant for Game Not Found
-const GameNotFound string = `{"error": "game not found"}`
-
 // User struct with selected password
 type User struct {
 	UserName string `json:"username"`
@@ -183,17 +159,6 @@ type QuartoPiece struct {
 	Short  bool
 	Hollow bool
 	Round  bool
-}
-
-//TODO: refactor into mock database
-var testUsers []*User
-var testUserIds []*UserId
-var testGames []*Game
-
-func WipeState() {
-	testUsers = []*User{}
-	testUserIds = []*UserId{}
-	testGames = []*Game{}
 }
 
 // Database interface

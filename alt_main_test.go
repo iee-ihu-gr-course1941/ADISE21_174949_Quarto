@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -45,7 +46,7 @@ func TestAllReal(t *testing.T) {
 		t.Error("resp.Body error:", err)
 	}
 	// response should contain json that can maps to the UserId type
-	u := &UserId{}
+	u := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u)
 	// check for unmarshaling errors
@@ -74,7 +75,7 @@ func TestAllReal(t *testing.T) {
 
 	// response should contain json that can maps to the Game type
 	// set up empty Game
-	g := &Game{}
+	g := &models.Game{}
 	// try to unmarshal
 	err = json.Unmarshal(body, g)
 	// check for unmarshaling errors
@@ -114,7 +115,7 @@ func TestAllReal(t *testing.T) {
 		t.Error("resp.Body error:", err)
 	}
 	// response should contain json that can maps to the UserId type
-	u2 := &UserId{}
+	u2 := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u2)
 	// check for unmarshaling errors
@@ -157,6 +158,7 @@ func TestAllReal(t *testing.T) {
 	}
 }
 
+/*
 func TestGetGame(t *testing.T) {
 	t.SkipNow()
 	// clear the global storage
@@ -192,3 +194,4 @@ func TestGetGame(t *testing.T) {
 		t.Log("p", i, p.UserName, p.UserId)
 	}
 }
+*/

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	rd "github.com/Pallinder/go-randomdata"
 	"io"
 	"net/http"
@@ -13,36 +14,8 @@ import (
 // Test HTTP server
 var testServer *httptest.Server = httptest.NewServer(setupRouter())
 
-func TestGetGame(t *testing.T) {
-	// clear global storage
-	WipeState()
-	// change URL, add the name of the user to be invited
-	testURL = testServer.URL + "/game/" + g.GameId
-	// do a simple Post request with the above data
-	res, err = http.Get(testURL)
-	// check for request errors
-	if err != nil {
-		t.Error("POST error:", err)
-	}
-	// be responsible and close the response some time
-	defer res.Body.Close()
-	// save response body to check later
-	body, err = io.ReadAll(res.Body)
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-	t.Log(string(body))
-	// try to unmarshal
-	err = json.Unmarshal(body, g)
-	// check for unmarshaling errors
-	if err != nil {
-		t.Error("unmarshal error:", err)
-	}
-}
-
 // Function for creating a user for use only outside TestCreateUser
-func randomUserCreation(t *testing.T) *UserId {
+func randomUserCreation(t *testing.T) *models.UserId {
 	// define URL
 	testURL := testServer.URL + "/user"
 	// create some data in the form of an io.Reader from a string of json
@@ -62,7 +35,7 @@ func randomUserCreation(t *testing.T) *UserId {
 		t.Error("resp.Body error:", err)
 	}
 	// response should contain json that can maps to the UserId type
-	u := &UserId{}
+	u := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u)
 	// check for unmarshaling errors
@@ -73,7 +46,7 @@ func randomUserCreation(t *testing.T) *UserId {
 }
 
 // Function for creating a user for use only outside TestCreateUser
-func userCreation(t *testing.T) *UserId {
+func userCreation(t *testing.T) *models.UserId {
 	// define URL
 	testURL := testServer.URL + "/user"
 	// create some data in the form of an io.Reader from a string of json
@@ -93,7 +66,7 @@ func userCreation(t *testing.T) *UserId {
 		t.Error("resp.Body error:", err)
 	}
 	// response should contain json that can maps to the UserId type
-	u := &UserId{}
+	u := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u)
 	// check for unmarshaling errors
@@ -132,7 +105,7 @@ func TestCreateUser(t *testing.T) {
 
 	// response should contain json that can maps to the UserId type
 	// set up empty UserId
-	u := &UserId{}
+	u := &models.UserId{}
 	// try to unmarshal
 	err = json.Unmarshal(body, u)
 	// check for unmarshaling errors
@@ -144,7 +117,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 // Function for creating a game for use only outside TestCreateUser
-func gameCreation(t *testing.T) *Game {
+func gameCreation(t *testing.T) *models.Game {
 	// create a user
 	u := randomUserCreation(t)
 	// change URL
@@ -169,7 +142,7 @@ func gameCreation(t *testing.T) *Game {
 
 	// response should contain json that can maps to the Game type
 	// set up empty Game
-	g := &Game{}
+	g := &models.Game{}
 	// try to unmarshal
 	err = json.Unmarshal(body, g)
 	// check for unmarshaling errors
@@ -223,7 +196,7 @@ func TestCreateGame(t *testing.T) {
 
 	// response should contain json that can maps to the Game type
 	// set up empty Game
-	g := &Game{}
+	g := &models.Game{}
 	// try to unmarshal
 	err = json.Unmarshal(body, g)
 	// check for unmarshaling errors

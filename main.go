@@ -3,16 +3,55 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
 	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
 	"os"
 )
 
+// Constant for Bad Request
+const BadReq string = `{"error": "bad request"}`
+
+// Constant for Not Found
+const NotFound string = `{"error": "not found"}`
+
+// Constant for Unauthorized
+const Unauth string = `{"error": "unauthorized"}`
+
+// Constant for Unauthorized
+const ServerError string = `{"error": "internal server error"}`
+
+// Constant for success message
+const MsgSuccess string = `{"message": "success"}`
+
+// Constant for User Not Found
+const UserNotFound string = `{"error": "user not found"}`
+
+// Constant for Unauthorized
+const UserUnauth string = `{"error": "user unauthorized"}`
+
+// Constant for Game Not Found
+const GameNotFound string = `{"error": "game not found"}`
+
+//TODO: use mock db instead
+var testUsers []*models.User
+var testUserIds []*models.UserId
+var testGames []*models.Game
+
+func WipeState() {
+	testUsers = []*models.User{}
+	testUserIds = []*models.UserId{}
+	testGames = []*models.Game{}
+}
+
+var gamedb models.QuartoStorage
+
 func createUser(w http.ResponseWriter, r *http.Request) {
-	log.Println("createUser called")
+	//log.Println("createUser called")
 	w.Header().Set("Content-Type", "application/json")
-	u := &User{}
+	u := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(u)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -20,7 +59,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	testUsers = append(testUsers, u) //AddUser(u)
-	uid := &UserId{
+	uid := &models.UserId{
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
@@ -30,7 +69,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("getGame called")
+	//log.Println("getGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
@@ -49,10 +88,10 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("createGame called")
+	//log.Println("createGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//user that creates the game
-	uid := &UserId{}
+	uid := &models.UserId{}
 	err := json.NewDecoder(r.Body).Decode(uid)
 	if err != nil || uid.UserId == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -60,12 +99,12 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create a new game instance
-	g := &Game{
+	g := &models.Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
-		State: &GameState{
-			Board:        EmptyBoard,
-			UnusedPieces: AllQuartoPieces,
+		State: &models.GameState{
+			Board:        models.EmptyBoard,
+			UnusedPieces: models.AllQuartoPieces,
 		},
 	}
 	for _, u := range testUserIds {
@@ -81,7 +120,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("inviteToGame called")
+	//log.Println("inviteToGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
@@ -89,7 +128,7 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	gameId, _ := params["game_id"]
 
 	//user to be invited
-	var uid *UserId = nil
+	var uid *models.UserId = nil
 	//get the name of the user to be invited from path param
 	inviteeName, _ := params["username"]
 	//see if user exists in the user database
@@ -167,6 +206,8 @@ func main() {
 	httpPort := setupHTTPPort()
 	// Set up the router for the API
 	router := setupRouter()
+	// Set up storage
+	gamedb, _ = mock.NewMockDB()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error
