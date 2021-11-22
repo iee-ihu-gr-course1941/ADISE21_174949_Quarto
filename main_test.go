@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	rd "github.com/Pallinder/go-randomdata"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"io"
 	"net/http"
 	"net/http/httptest"

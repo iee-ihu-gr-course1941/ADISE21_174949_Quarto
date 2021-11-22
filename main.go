@@ -58,12 +58,23 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	testUsers = append(testUsers, u) //AddUser(u)
+	log.Println(u)
+	err = gamedb.AddUser(u)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	uid := &models.UserId{
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
-	testUserIds = append(testUserIds, uid) //AddUserId(uid)
+	err = gamedb.AddUserId(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	json.NewEncoder(w).Encode(uid)
 	return
 }
@@ -115,8 +126,14 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
-	testGames = append(testGames, g) //AddGame(g)
+	err = gamedb.AddGame(g)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	json.NewEncoder(w).Encode(g)
+	return
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
@@ -201,13 +218,17 @@ func setupRouter() http.Handler {
 	return router
 }
 
+func init() {
+
+	// Set up storage
+	gamedb, _ = mock.NewMockDB()
+}
+
 func main() {
 	// Determine port to run at
 	httpPort := setupHTTPPort()
 	// Set up the router for the API
 	router := setupRouter()
-	// Set up storage
-	gamedb, _ = mock.NewMockDB()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error

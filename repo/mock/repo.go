@@ -16,7 +16,7 @@ var mymockdb *MockDB = nil
 
 func NewMockDB() (*MockDB, error) {
 	mymockdb = &MockDB{}
-	return &MockDB{}, nil
+	return mymockdb, nil
 }
 
 func (m *MockDB) AddUser(u *models.User) error {
