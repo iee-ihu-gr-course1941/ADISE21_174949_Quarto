@@ -49,7 +49,7 @@ func WipeState() {
 var gamedb models.QuartoStorage
 
 func createUser(w http.ResponseWriter, r *http.Request) {
-	log.Println("createUser called")
+	//log.Println("createUser called")
 	w.Header().Set("Content-Type", "application/json")
 	u := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(u)
@@ -69,7 +69,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("getGame called")
+	//log.Println("getGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
@@ -88,7 +88,7 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("createGame called")
+	//log.Println("createGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//user that creates the game
 	uid := &models.UserId{}
@@ -120,7 +120,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("inviteToGame called")
+	//log.Println("inviteToGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
