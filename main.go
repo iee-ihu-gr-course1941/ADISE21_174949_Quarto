@@ -79,6 +79,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//TODO: if user authorized
 func getGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("getGame called")
 	w.Header().Set("Content-Type", "application/json")
@@ -86,10 +87,13 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	for _, g := range testGames {
-		if g.GameId == gameId {
-			json.NewEncoder(w).Encode(g)
-		}
+	g, err := gamedb.GetGame(gameID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(NotFound))
+		return
+	} else {
+		json.NewEncoder(w).Encode(g)
 	}
 	return
 }
@@ -149,12 +153,15 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	//get the name of the user to be invited from path param
 	inviteeName, _ := params["username"]
 	//see if user exists in the user database
-	for idx, u := range testUserIds { //GetUserId(u)
-		if u.UserName == inviteeName {
-			uid = testUserIds[idx]
-			break
-		}
-	}
+
+	//TODO: use GetUserIdFromUserId after implenting it
+	//uid, err := gamedb.GetUserId(u)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusNotFound)
+	//	w.Write([]byte(GameNotFound))
+	//	return
+	//}
+
 	//return error if user with username can't be found
 	if uid == nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -162,13 +169,15 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//append player to game if game exists
-	for _, g := range testGames { //InviteUser(u)
-		if g.GameId == gameId {
-			g.InvitedPlayers = append(g.InvitedPlayers, uid)
+	err = gamedb.InviteUser(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	} else {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(MsgSuccess))
 			return
-		}
 	}
 	//return error if game doesn't exist
 	w.WriteHeader(http.StatusNotFound)
