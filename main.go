@@ -35,17 +35,6 @@ const UserUnauth string = `{"error": "user unauthorized"}`
 // Constant for Game Not Found
 const GameNotFound string = `{"error": "game not found"}`
 
-//TODO: use mock db instead
-var testUsers []*models.User
-var testUserIds []*models.UserId
-var testGames []*models.Game
-
-func WipeState() {
-	testUsers = []*models.User{}
-	testUserIds = []*models.UserId{}
-	testGames = []*models.Game{}
-}
-
 var gamedb models.QuartoStorage
 
 func createUser(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +47,6 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	log.Println(u)
 	err = gamedb.AddUser(u)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -122,11 +110,11 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 			UnusedPieces: models.AllQuartoPieces,
 		},
 	}
-	for _, u := range testUserIds {
-		if u.UserId == uid.UserId {
-			uid = u
-			break
-		}
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
@@ -135,13 +123,14 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
 		return
+	} else {
+		json.NewEncoder(w).Encode(g)
+		return
 	}
-	json.NewEncoder(w).Encode(g)
-	return
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
-	//log.Println("inviteToGame called")
+	log.Println("inviteToGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
@@ -157,31 +146,22 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	uid, err := gamedb.GetUserIdFromUserName(inviteeName)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(GameNotFound))
-		return
-	}
-
-	//return error if user with username can't be found
-	if uid == nil {
-		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(UserNotFound))
 		return
 	}
+
 	//append player to game if game exists
 	err = gamedb.InviteUser(uid.UserId, gameId)
+	log.Println(err)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
 		return
 	} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(MsgSuccess))
-			return
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(MsgSuccess))
+		return
 	}
-	//return error if game doesn't exist
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte(GameNotFound))
-	return
 }
 
 func joinGame(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +207,6 @@ func setupRouter() http.Handler {
 }
 
 func init() {
-
 	// Set up storage
 	gamedb, _ = mock.NewMockDB()
 }

@@ -12,10 +12,14 @@ type MockDB struct {
 }
 
 //TODO: make sure this needs to be a pointer
-var mymockdb *MockDB = nil
+var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
-	mymockdb = &MockDB{}
+	mymockdb = &MockDB{
+		Users: []*models.User{&models.User{}},
+		UserIds: []*models.UserId{&models.UserId{}},
+		Games: []*models.Game{},
+	}
 	return mymockdb, nil
 }
 
