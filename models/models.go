@@ -165,9 +165,8 @@ type QuartoPiece struct {
 type QuartoStorage interface {
 	AddUser(*User) error
 	AddUserId(*UserId) error
-	GetUserId(userid string) (*UserId, error)
-	//GetUserIdFromUserId(userid string) (*UserId, error) //TODO: implement
-	//GetUserIdFromName(userid string) (*UserId, error) //TODO: implement
+	GetUserIdFromUserId(userid string) (*UserId, error)
+	GetUserIdFromUserName(userid string) (*UserId, error)
 	AddGame(*Game) error
 	GetGame(gameid string) (*Game, error)
 	GetAllGames() ([]*Game, error)

@@ -87,7 +87,7 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	g, err := gamedb.GetGame(gameID)
+	g, err := gamedb.GetGame(gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(NotFound))
@@ -154,13 +154,12 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	inviteeName, _ := params["username"]
 	//see if user exists in the user database
 
-	//TODO: use GetUserIdFromUserId after implenting it
-	//uid, err := gamedb.GetUserId(u)
-	//if err != nil {
-	//	w.WriteHeader(http.StatusNotFound)
-	//	w.Write([]byte(GameNotFound))
-	//	return
-	//}
+	uid, err := gamedb.GetUserIdFromUserName(inviteeName)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(GameNotFound))
+		return
+	}
 
 	//return error if user with username can't be found
 	if uid == nil {
@@ -169,7 +168,7 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//append player to game if game exists
-	err = gamedb.InviteUser(uid)
+	err = gamedb.InviteUser(uid.UserId, gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
