@@ -187,7 +187,53 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func joinGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	//log.Println("joinGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+	log.Println("gameId", gameId)
+
+	//user trying to join
+	uid := &models.UserId{}
+	err := json.NewDecoder(r.Body).Decode(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		//TODO: handle error
+	}
+
+	//TODO: error messages in following loop
+	//TODO: returns in following loop
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(GameNotFound))
+		return
+	}
+	for _, u := range g.InvitedPlayers {
+		if cap(g.ActivePlayers) == models.MaxPlayers {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(`{"error": "couldn't join because game is full"}`))
+			return
+		} else if cap(g.ActivePlayers) > models.MaxPlayers {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(`{"error": "I honestly don't know how this happened"}`))
+			return
+		}
+		if uid.UserId == u.UserId {
+			g.ActivePlayers = append(g.ActivePlayers, uid)
+			g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(MsgSuccess))
+			return
+		}
+	}
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {

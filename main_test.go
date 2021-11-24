@@ -217,6 +217,62 @@ func TestCreateGame(t *testing.T) {
 	t.Log(g)
 }
 
+func gameInvitation(t *testing.T) (*models.Game, *models.UserId, *models.UserId) {
+	// create a game which also creates random user
+	g := gameCreation(t)
+	// alias for the first invited player aka the game creator
+	invPlayer1 := g.InvitedPlayers[0]
+	// create a second random user
+	u := randomUserCreation(t)
+	// change URL, add the name of the user to be invited
+	testURL := testServer.URL + "/game/" + g.GameId + "/invite/" + u.UserName
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + invPlayer1.UserName + `", "user_id": "` + invPlayer1.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user did not yield success message")
+	}
+
+	// change URL, add the name of the user to be invited
+	testURL = testServer.URL + "/game/" + g.GameId
+	// do a simple Post request with the above data
+	res, err = http.Get(testURL)
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// try to unmarshal
+	err = json.Unmarshal(body, g)
+	// check for unmarshaling errors
+	if err != nil {
+		t.Error("unmarshal error:", err)
+	}
+	return g, invPlayer1, u
+}
+
 func TestInviteToGame(t *testing.T) {
 	// create a game which also creates random user
 	g := gameCreation(t)
@@ -289,4 +345,36 @@ func TestInviteToGame(t *testing.T) {
 	//		t.Log("g.IP[1]", g.InvitedPlayers[1])
 	//	}
 	//}
+}
+
+func TestJoinGame(t *testing.T) {
+	g, u, u2 := gameInvitation(t)
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+	t.Log(testURL)
+	t.Log(u, u2)
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// log response
+	t.Log("res", res)
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user did not yield success message")
+	}
 }
