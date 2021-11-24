@@ -217,7 +217,6 @@ func TestCreateGame(t *testing.T) {
 	t.Log(g)
 }
 
-//TODO: figure out why this test break while the application works fine
 func TestInviteToGame(t *testing.T) {
 	// create a game which also creates random user
 	g := gameCreation(t)
