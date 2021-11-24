@@ -11,17 +11,6 @@ import (
 	"testing"
 )
 
-//TODO: figure out why the following happens
-//
-//=== RUN   TestAllReal
-//    alt_main_test.go:92: gID yqT5bkp7Rz
-//    alt_main_test.go:170: p 0 myself sqo5bkt7R
-//--- PASS: TestAllReal (0.00s)
-//=== RUN   TestGetGame
-//    alt_main_test.go:207: p 0 myself sqo5bkt7R
-//    alt_main_test.go:207: p 1 u222 -AlqJzt7Rz
-//--- PASS: TestGetGame (0.00s)
-
 var gid string
 
 func TestAllReal(t *testing.T) {
