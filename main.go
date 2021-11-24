@@ -35,7 +35,16 @@ const UserUnauth string = `{"error": "user unauthorized"}`
 // Constant for Game Not Found
 const GameNotFound string = `{"error": "game not found"}`
 
+// Constant for welcome message
+const MsgWelcome string = `Welcome to my Quarto API written in Go`
+
 var gamedb models.QuartoStorage
+
+func getRoot(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(MsgWelcome+"\n"))
+		return
+}
 
 func createUser(w http.ResponseWriter, r *http.Request) {
 	//log.Println("createUser called")
@@ -130,7 +139,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("inviteToGame called")
+	//log.Println("inviteToGame called")
 	w.Header().Set("Content-Type", "application/json")
 	//get the path parameters
 	params := mux.Vars(r)
@@ -152,7 +161,6 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 
 	//append player to game if game exists
 	err = gamedb.InviteUser(uid.UserId, gameId)
-	log.Println(err)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
@@ -188,6 +196,8 @@ func setupHTTPPort() string {
 func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
+	// Set up weclome message at api root
+	router.HandleFunc("/", getRoot).Methods(http.MethodGet)
 	// Set up subrouter for user functions
 	userRouter := router.PathPrefix("/user").Subrouter()
 	// Set up subrouter for game functions
