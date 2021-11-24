@@ -12,11 +12,15 @@ type MockDB struct {
 }
 
 //TODO: make sure this needs to be a pointer
-var mymockdb *MockDB = nil
+var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
-	mymockdb = &MockDB{}
-	return &MockDB{}, nil
+	mymockdb = &MockDB{
+		Users: []*models.User{},
+		UserIds: []*models.UserId{},
+		Games: []*models.Game{},
+	}
+	return mymockdb, nil
 }
 
 func (m *MockDB) AddUser(u *models.User) error {
@@ -29,13 +33,22 @@ func (m *MockDB) AddUserId(uid *models.UserId) error {
 	return nil
 }
 
-func (m *MockDB) GetUserId(userid string) (*models.UserId, error) {
+func (m *MockDB) GetUserIdFromUserId(userid string) (*models.UserId, error) {
 	for _, u := range m.UserIds {
-		if u.UserName == userid {
+		if u.UserId == userid {
 			return u, nil
 		}
 	}
 	return nil, fmt.Errorf("user with id", userid, "not found")
+}
+
+func (m *MockDB) GetUserIdFromUserName(username string) (*models.UserId, error) {
+	for _, u := range m.UserIds {
+		if u.UserName == username {
+			return u, nil
+		}
+	}
+	return nil, fmt.Errorf("user with name", username, "not found")
 }
 
 func (m *MockDB) AddGame(g *models.Game) error {
@@ -66,7 +79,7 @@ func (m *MockDB) GetAllGames() ([]*models.Game, error) {
 }
 
 func (m *MockDB) InviteUser(userid string, gameid string) error {
-	u, err := m.GetUserId(userid)
+	u, err := m.GetUserIdFromUserId(userid)
 	if err != nil {
 		return err
 	}
@@ -79,7 +92,7 @@ func (m *MockDB) InviteUser(userid string, gameid string) error {
 }
 
 func (m *MockDB) JoinUser(userid string, gameid string) error {
-	u, err := m.GetUserId(userid)
+	u, err := m.GetUserIdFromUserId(userid)
 	if err != nil {
 		return err
 	}

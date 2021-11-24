@@ -35,18 +35,16 @@ const UserUnauth string = `{"error": "user unauthorized"}`
 // Constant for Game Not Found
 const GameNotFound string = `{"error": "game not found"}`
 
-//TODO: use mock db instead
-var testUsers []*models.User
-var testUserIds []*models.UserId
-var testGames []*models.Game
-
-func WipeState() {
-	testUsers = []*models.User{}
-	testUserIds = []*models.UserId{}
-	testGames = []*models.Game{}
-}
+// Constant for welcome message
+const MsgWelcome string = `Welcome to my Quarto API written in Go`
 
 var gamedb models.QuartoStorage
+
+func getRoot(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(MsgWelcome+"\n"))
+		return
+}
 
 func createUser(w http.ResponseWriter, r *http.Request) {
 	//log.Println("createUser called")
@@ -58,16 +56,27 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	testUsers = append(testUsers, u) //AddUser(u)
+	err = gamedb.AddUser(u)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	uid := &models.UserId{
 		UserName: u.UserName,
 		UserId:   shortid.MustGenerate(),
 	}
-	testUserIds = append(testUserIds, uid) //AddUserId(uid)
+	err = gamedb.AddUserId(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	json.NewEncoder(w).Encode(uid)
 	return
 }
 
+//TODO: if user authorized
 func getGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("getGame called")
 	w.Header().Set("Content-Type", "application/json")
@@ -75,10 +84,13 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	for _, g := range testGames {
-		if g.GameId == gameId {
-			json.NewEncoder(w).Encode(g)
-		}
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(NotFound))
+		return
+	} else {
+		json.NewEncoder(w).Encode(g)
 	}
 	return
 }
@@ -107,16 +119,23 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 			UnusedPieces: models.AllQuartoPieces,
 		},
 	}
-	for _, u := range testUserIds {
-		if u.UserId == uid.UserId {
-			uid = u
-			break
-		}
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
-	testGames = append(testGames, g) //AddGame(g)
-	json.NewEncoder(w).Encode(g)
+	err = gamedb.AddGame(g)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	} else {
+		json.NewEncoder(w).Encode(g)
+		return
+	}
 }
 
 func inviteToGame(w http.ResponseWriter, r *http.Request) {
@@ -132,31 +151,25 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	//get the name of the user to be invited from path param
 	inviteeName, _ := params["username"]
 	//see if user exists in the user database
-	for idx, u := range testUserIds { //GetUserId(u)
-		if u.UserName == inviteeName {
-			uid = testUserIds[idx]
-			break
-		}
-	}
-	//return error if user with username can't be found
-	if uid == nil {
+
+	uid, err := gamedb.GetUserIdFromUserName(inviteeName)
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(UserNotFound))
 		return
 	}
+
 	//append player to game if game exists
-	for _, g := range testGames { //InviteUser(u)
-		if g.GameId == gameId {
-			g.InvitedPlayers = append(g.InvitedPlayers, uid)
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(MsgSuccess))
-			return
-		}
+	err = gamedb.InviteUser(uid.UserId, gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(MsgSuccess))
+		return
 	}
-	//return error if game doesn't exist
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte(GameNotFound))
-	return
 }
 
 func joinGame(w http.ResponseWriter, r *http.Request) {
@@ -183,6 +196,8 @@ func setupHTTPPort() string {
 func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
+	// Set up weclome message at api root
+	router.HandleFunc("/", getRoot).Methods(http.MethodGet)
 	// Set up subrouter for user functions
 	userRouter := router.PathPrefix("/user").Subrouter()
 	// Set up subrouter for game functions
@@ -201,13 +216,16 @@ func setupRouter() http.Handler {
 	return router
 }
 
+func init() {
+	// Set up storage
+	gamedb, _ = mock.NewMockDB()
+}
+
 func main() {
 	// Determine port to run at
 	httpPort := setupHTTPPort()
 	// Set up the router for the API
 	router := setupRouter()
-	// Set up storage
-	gamedb, _ = mock.NewMockDB()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error
