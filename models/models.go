@@ -128,17 +128,15 @@ type UserId struct {
 	UserId   string `json:"user_id"`
 }
 
-//TODO: rethink active/inactive players thing
 type Game struct {
 	GameId         string     `json:"game_id"`
-	ActivePlayers  []*UserId  `json:"active_players"`
-	InvitedPlayers []*UserId  `json:"invited_players"`
+	ActivePlayers  []*UserId  `json:"active_players"` //TODO: move to GameState
+	InvitedPlayers []*UserId  `json:"invited_players"` //TODO: move to GameState
 	ActivityStatus bool       `json:"activity_status"`
 	State          *GameState `json:"game_state"`
 	Winner         *UserId    `json:"winner"`
 }
 
-//TODO: fill in with fields
 type GameState struct {
 	NextPlayer   *UserId            `json:"next_player"`
 	NextPiece    *QuartoPiece       `json:"next_piece"`
