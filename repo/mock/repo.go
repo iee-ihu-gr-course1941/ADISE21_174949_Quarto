@@ -11,7 +11,6 @@ type MockDB struct {
 	Games   []*models.Game
 }
 
-//TODO: make sure this needs to be a pointer
 var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
