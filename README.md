@@ -16,6 +16,10 @@ go run main.go vars.go
 ## Running Tests
 from the root of the repository run:
 ```
+go test
+```
+or if you want lots of debug output, run:
+```
 go test -v
 ```
 
