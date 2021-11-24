@@ -16,8 +16,8 @@ var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
 	mymockdb = &MockDB{
-		Users: []*models.User{&models.User{}},
-		UserIds: []*models.UserId{&models.UserId{}},
+		Users: []*models.User{},
+		UserIds: []*models.UserId{},
 		Games: []*models.Game{},
 	}
 	return mymockdb, nil
@@ -44,7 +44,7 @@ func (m *MockDB) GetUserIdFromUserId(userid string) (*models.UserId, error) {
 
 func (m *MockDB) GetUserIdFromUserName(username string) (*models.UserId, error) {
 	for _, u := range m.UserIds {
-		if u.UserId == username {
+		if u.UserName == username {
 			return u, nil
 		}
 	}
