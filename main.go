@@ -205,7 +205,9 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	}
 	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
 	if err != nil {
-		//TODO: handle error
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(UserNotFound))
+		return
 	}
 
 	//TODO: error messages in following loop
@@ -216,6 +218,16 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(GameNotFound))
 		return
 	}
+	err = gamedb.JoinUser(uid.UserId, g.GameId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(MsgSuccess))
+	return
+/*
 	for _, u := range g.InvitedPlayers {
 		if cap(g.ActivePlayers) == models.MaxPlayers {
 			w.WriteHeader(http.StatusNotFound)
@@ -234,6 +246,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+*/
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
