@@ -41,9 +41,9 @@ const MsgWelcome string = `Welcome to my Quarto API written in Go`
 var gamedb models.QuartoStorage
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(MsgWelcome+"\n"))
-		return
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(MsgWelcome+"\n"))
+	return
 }
 
 func createUser(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +96,21 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func getGameState(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	//log.Println("getGameState called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(NotFound))
+		return
+	} else {
+		json.NewEncoder(w).Encode(g.State)
+	}
+	return
 }
 
 func createGame(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +187,44 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func joinGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	//log.Println("joinGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+	log.Println("gameId", gameId)
+
+	//user trying to join
+	uid := &models.UserId{}
+	err := json.NewDecoder(r.Body).Decode(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(UserNotFound))
+		return
+	}
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(GameNotFound))
+		return
+	}
+
+	err = gamedb.JoinUser(uid.UserId, g.GameId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(MsgSuccess))
+	return
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
