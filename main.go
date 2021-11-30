@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mysql"
 	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
@@ -269,7 +270,24 @@ func setupRouter() http.Handler {
 
 func init() {
 	// Set up storage
-	gamedb, _ = mock.NewMockDB()
+	mysqlURL := os.Getenv("MYSQL_URL")
+	if mysqlURL != "" {
+		if mysqlURL == "test" {
+			db, err := mysql.NewMysqlRepo("")//TODO: fill in test url
+			if err != nil {
+				log.Fatalf("error %v", err)
+			}
+			gamedb = db
+		} else {
+			db, err := mysql.NewMysqlRepo(mysqlURL)
+			if err != nil {
+				log.Fatalf("error %v", err)
+			}
+			gamedb = db
+		}
+		return
+	}
+	gamedb, _ = mock.NewMockDB() //Error ignored because it's always nil
 }
 
 func main() {
