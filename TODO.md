@@ -3,16 +3,6 @@
 ## Functions to implement
 yet unimplemented functions
 ```go
-func getGame(w http.ResponseWriter, r *http.Request) {}
-
-func getGameState(w http.ResponseWriter, r *http.Request) {}
-
-func createGame(w http.ResponseWriter, r *http.Request) {}
-
-func inviteToGame(w http.ResponseWriter, r *http.Request) {}
-
-func joinGame(w http.ResponseWriter, r *http.Request) {}
-
 func playInGame(w http.ResponseWriter, r *http.Request) {}
 
 func checkGameState(gameId string) {}
