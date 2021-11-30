@@ -209,15 +209,13 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(UserNotFound))
 		return
 	}
-
-	//TODO: error messages in following loop
-	//TODO: returns in following loop
 	g, err := gamedb.GetGame(gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(GameNotFound))
 		return
 	}
+
 	err = gamedb.JoinUser(uid.UserId, g.GameId)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -227,26 +225,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(MsgSuccess))
 	return
-/*
-	for _, u := range g.InvitedPlayers {
-		if cap(g.ActivePlayers) == models.MaxPlayers {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(`{"error": "couldn't join because game is full"}`))
-			return
-		} else if cap(g.ActivePlayers) > models.MaxPlayers {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(`{"error": "I honestly don't know how this happened"}`))
-			return
-		}
-		if uid.UserId == u.UserId {
-			g.ActivePlayers = append(g.ActivePlayers, uid)
-			g.InvitedPlayers = g.InvitedPlayers[:len(g.InvitedPlayers)-1]
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(MsgSuccess))
-			return
-		}
-	}
-*/
 }
 
 func playInGame(w http.ResponseWriter, r *http.Request) {
