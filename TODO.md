@@ -1,5 +1,8 @@
 # Things TODO
 
+## inviteToGame()
+Check if game exists before inviting user
+
 ## Refactor models
 Some models are not working out very well with databases
 

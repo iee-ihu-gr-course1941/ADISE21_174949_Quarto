@@ -273,7 +273,7 @@ func init() {
 	mysqlURL := os.Getenv("MYSQL_URL")
 	if mysqlURL != "" {
 		if mysqlURL == "test" {
-			db, err := mysql.NewMysqlRepo("")//TODO: fill in test url
+			db, err := mysql.NewMysqlRepo("tester:Apasswd@tcp(localhost:3306)/tester")
 			if err != nil {
 				log.Fatalf("error %v", err)
 			}

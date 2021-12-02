@@ -15,9 +15,9 @@ var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
 	mymockdb = &MockDB{
-		Users: []*models.User{},
+		Users:   []*models.User{},
 		UserIds: []*models.UserId{},
-		Games: []*models.Game{},
+		Games:   []*models.Game{},
 	}
 	return mymockdb, nil
 }
