@@ -38,6 +38,15 @@ CREATE TABLE if not exists InvitedPlayers (
 
 
 // TODO: model board
+var createBoardTableQuery = `CREATE TABLE if not exists Boards (
+	BoardID INTEGER AUTO_INCREMENT NOT NULL,
+	GameID VARCHAR(100) REFERENCES Games(GameID) NOT NULL,
+	Row1 JSON NOT NULL,
+	Row2 JSON NOT NULL,
+	Row3 JSON NOT NULL,
+	Row4 JSON NOT NULL,
+	PRIMARY KEY (BoardID)
+);`
 
 var useridfromuseridRetrieveQuery = `SELECT * FROM UserIDs WHERE UserID = ?;`
 
@@ -55,13 +64,19 @@ var gamestateRetrieveQuery = `SELECT
 	NextPlayer,
 	NextPiece,
 	Board,
-	UnusedPieces
+	UnusedPieces,
+	Winner
 FROM Games WHERE GameID = ?;`
 
 //TODO: order by timestamp
-var invitedplayersRetrieveQuery = `SELECT * FROM InvitedPlayers WHERE GameID = ? ORDER BY InvitationTime DESCENDING;`
+//var invitedplayersRetrieveQuery = `SELECT * FROM InvitedPlayers WHERE GameID = ? ORDER BY InvitationTime DESCENDING;`
+//
+//var activeplayersRetrieveQuery = `SELECT * FROM ActivePlayers WHERE GameID = ?;`
 
-var activeplayersRetrieveQuery = `SELECT * FROM ActivePlayers WHERE GameID = ?;`
+//alt impl
+var invitedplayersRetrieveQuery = `SELECT InvitedPlayers FROM Games WHERE GameID = ?;`
+
+var activeplayersRetrieveQuery = `SELECT ActivePlayers FROM Games WHERE GameID = ?;`
 
 var userInsertQuery = `INSERT INTO Users (
 	UserNickname,
@@ -80,3 +95,5 @@ var gameInsertQuery = `INSERT INTO Games (
 	Board,
 	UnusedPieces
 ) VALUES (?, ?, ?, ?, ?);`
+
+var gameUpdateQuery = `UPDATE Games SET InvitedPlayers = ? WHERE GameID = ?;`

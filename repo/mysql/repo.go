@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"encoding/json"
+	"log"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
@@ -128,6 +129,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 		jb,
 		jup,
 	).Err()
+	log.Println("mysql game", g)
 	if err != nil {
 		return err
 	}
@@ -135,11 +137,74 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 }
 
 func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
-	return nil, nil
+	g := &models.Game{
+		GameId:         gameid,
+		ActivityStatus: true,
+		State: &models.GameState{
+			Board:        models.EmptyBoard,
+			UnusedPieces: models.AllQuartoPieces,
+		},
+	}
+	rows, err := r.client.Query(gameRetrieveQuery, gameid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var jap, jip, jnp, jb, jup []byte
+	for rows.Next() {
+		err = rows.Scan(
+			&g.GameId,
+			&g.ActivityStatus,
+			&g.Winner,
+			&jap,
+			&jip,
+			&g.State.NextPlayer,
+			&jnp,
+			&jb,
+			&jup,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_ = json.Unmarshal(jap, &g.ActivePlayers)
+	_ = json.Unmarshal(jip, &g.InvitedPlayers)
+	_ = json.Unmarshal(jnp, &g.State.NextPiece)
+	_ = json.Unmarshal(jb, &g.State.Board)
+	_ = json.Unmarshal(jup, &g.State.UnusedPieces)
+	return g, nil
 }
 
 func (r *mysqlRepo) GetGameState(gameid string) (*models.GameState, error) {
-	return nil, nil
+	g := &models.Game{
+		GameId:         gameid,
+		ActivityStatus: true,
+		State: &models.GameState{
+			Board:        models.EmptyBoard,
+			UnusedPieces: models.AllQuartoPieces,
+		},
+	}
+	var gsb []byte
+	var gsup []byte
+	rows, err := r.client.Query(gamestateRetrieveQuery, gameid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(
+			&g.State.NextPlayer,
+			&g.State.NextPiece,
+			&gsb,
+			&gsup,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_ = json.Unmarshal(gsb, &g.State.Board)
+	_ = json.Unmarshal(gsup, &g.State.UnusedPieces)
+	return g.State, nil
 }
 
 func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
@@ -147,6 +212,47 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 }
 
 func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
+	//TODO: check if user exists
+	uid, err := r.GetUserIdFromUserName(userid)
+	if err != nil {
+		return err
+	}
+	var g = &models.Game{}
+	var jap, jip, jnp, jb, jup []byte
+	rows, err := r.client.Query(gameRetrieveQuery, gameid)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(
+			&g.GameId,
+			&g.ActivityStatus,
+			&g.Winner,
+			&jap,
+			&jip,
+			&g.State.NextPlayer,
+			&jnp,
+			&jb,
+			&jup,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	err = json.Unmarshal(jip, &g.InvitedPlayers)
+	if err != nil {
+		return err
+	}
+	g.InvitedPlayers = append(g.InvitedPlayers, uid)
+	jip, err = json.Marshal(g.InvitedPlayers)
+	if err != nil {
+		return err
+	}
+	err = r.client.QueryRow(gameUpdateQuery, jip).Err()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
