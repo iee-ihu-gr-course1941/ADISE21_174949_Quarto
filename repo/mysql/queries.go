@@ -78,7 +78,7 @@ var createEmptyBoardQuery = `INSERT INTO Boards () VALUES ();`
 
 var useridfromuseridRetrieveQuery = `SELECT * FROM UserIDs WHERE UserID = ?;`
 
-var useridfromusernameRetrieveQuery = `SELECT * FROM UserIDs WHERE UserName = ?;`
+var useridfromusernameRetrieveQuery = `SELECT * FROM UserIDs WHERE UserNickName = ?;`
 
 var userRetrieveAllQuery = `SELECT * FROM Users;`
 

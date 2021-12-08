@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"encoding/json"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
@@ -143,7 +142,9 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 		g.GameId,
 		g.InvitedPlayers[0].UserName,
 	).Err()
-	//TODO: invite game creator
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -155,10 +156,8 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			ActivityStatus,
 			NextPlayer,
 			NextPiece,
-			UnusedPieces,
 			Winner
-		FROM Games WHERE GameId = ?;
-		`,
+		FROM Games WHERE GameId = ?;`,
 		gameid,
 	)
 	if err != nil {
@@ -171,12 +170,35 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			&g.ActivityStatus,
 			&g.NextPlayer,
 			&g.NextPiece,
-			&g.UnusedPieces,
 			&g.Winner,
 		)
 		if err != nil {
 			return nil, err
 		}
+	}
+	var uname string
+	rows, err = r.client.Query(
+		`SELECT UserName
+			FROM InvitedPlayers AS ip
+			JOIN Games AS g
+			ON ip.GameID = g.GameID
+		WHERE g.GameID = ?;`,
+		g.GameId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&uname)
+		if err != nil {
+			return nil, err
+		}
+		uid, err := r.GetUserIdFromUserName(uname)
+		if err != nil {
+			return nil, err
+		}
+		g.InvitedPlayers = append(g.InvitedPlayers, uid)
 	}
 	return g, nil
 }
@@ -187,44 +209,19 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 
 //TODO: rewrite
 func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
-	//TODO: check if user exists
-	uid, err := r.GetUserIdFromUserName(userid)
+	uid, err := r.GetUserIdFromUserId(userid)
 	if err != nil {
 		return err
 	}
-	var g = &models.Game{}
-	var jap, jip, jnp, jb, jup []byte
-	rows, err := r.client.Query(gameRetrieveQuery, gameid)
+	err = r.client.QueryRow(`SELECT GameId FROM Games WHERE GameId = ?`, gameid).Err()
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(
-			&g.GameId,
-			&g.ActivityStatus,
-			&g.Winner,
-			&jap,
-			&jip,
-			&g.NextPlayer,
-			&jnp,
-			&jb,
-			&jup,
-		)
-		if err != nil {
-			return err
-		}
-	}
-	err = json.Unmarshal(jip, &g.InvitedPlayers)
-	if err != nil {
-		return err
-	}
-	g.InvitedPlayers = append(g.InvitedPlayers, uid)
-	jip, err = json.Marshal(g.InvitedPlayers)
-	if err != nil {
-		return err
-	}
-	err = r.client.QueryRow(gameUpdateQuery, jip).Err()
+	err = r.client.QueryRow(
+		`INSERT INTO InvitedPlayers (GameId, UserName) VALUE (?, ?);`,
+		gameid,
+		uid.UserName,
+	).Err()
 	if err != nil {
 		return err
 	}
