@@ -12,6 +12,15 @@ var createUserIdTableQuery = `CREATE TABLE if not exists UserIDs (
 	PRIMARY KEY (UserNickname)
 );`
 
+var createQuartoPieceTableQuery = `CREATE TABLE if not exists QuartoPieces (
+	ID INTEGER NOT NULL,
+	Dark BOOLEAN NOT NULL,
+	Short BOOLEAN NOT NULL,
+	Hollow BOOLEAN NOT NULL,
+	Round BOOLEAN NOT NULL,
+	PRIMARY KEY (ID)
+);`
+
 var createGameTableQuery = `CREATE TABLE if not exists Games (
 	GameID VARCHAR(100) PRIMARY KEY NOT NULL,
 	ActivityStatus BOOLEAN NOT NULL DEFAULT FALSE,
@@ -20,7 +29,7 @@ var createGameTableQuery = `CREATE TABLE if not exists Games (
 	InvitedPlayers JSON,
 	NextPlayer VARCHAR(100) REFERENCES Users(UserNickname),
 	NextPiece JSON,
-	Board JSON NOT NULL,
+	BoardID INTEGER REFERENCES Boards(BoardID),
 	UnusedPieces JSON NOT NULL
 );`
 
@@ -37,14 +46,30 @@ CREATE TABLE if not exists InvitedPlayers (
 );`
 
 
-// TODO: model board
+//could also be INTEGER UNIQUE
 var createBoardTableQuery = `CREATE TABLE if not exists Boards (
 	BoardID INTEGER AUTO_INCREMENT NOT NULL,
-	GameID VARCHAR(100) REFERENCES Games(GameID) NOT NULL,
-	Row1 JSON NOT NULL,
-	Row2 JSON NOT NULL,
-	Row3 JSON NOT NULL,
-	Row4 JSON NOT NULL,
+
+	x0y0 INTEGER REFERENCES QuartoPieces(ID),
+	x0y1 INTEGER REFERENCES QuartoPieces(ID),
+	x0y2 INTEGER REFERENCES QuartoPieces(ID),
+	x0y3 INTEGER REFERENCES QuartoPieces(ID),
+
+	x1y0 INTEGER REFERENCES QuartoPieces(ID),
+	x1y1 INTEGER REFERENCES QuartoPieces(ID),
+	x1y2 INTEGER REFERENCES QuartoPieces(ID),
+	x1y3 INTEGER REFERENCES QuartoPieces(ID),
+
+	x2y0 INTEGER REFERENCES QuartoPieces(ID),
+	x2y1 INTEGER REFERENCES QuartoPieces(ID),
+	x2y2 INTEGER REFERENCES QuartoPieces(ID),
+	x2y3 INTEGER REFERENCES QuartoPieces(ID),
+
+	x3y0 INTEGER REFERENCES QuartoPieces(ID),
+	x3y1 INTEGER REFERENCES QuartoPieces(ID),
+	x3y2 INTEGER REFERENCES QuartoPieces(ID),
+	x3y3 INTEGER REFERENCES QuartoPieces(ID),
+
 	PRIMARY KEY (BoardID)
 );`
 

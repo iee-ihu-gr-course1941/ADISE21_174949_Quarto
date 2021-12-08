@@ -22,6 +22,10 @@ func newMysqlClient(url string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = client.Exec(createBoardTableQuery)
+	if err != nil {
+		return nil, err
+	}
 	_, err = client.Exec(createUserTableQuery)
 	if err != nil {
 		return nil, err

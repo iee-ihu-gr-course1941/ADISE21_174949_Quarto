@@ -4,6 +4,7 @@ package models
 var AllQuartoPieces = [16]*QuartoPiece{
 	// All false
 	&QuartoPiece{
+		Id: 0,
 		Dark:   false,
 		Short:  false,
 		Hollow: false,
@@ -11,24 +12,28 @@ var AllQuartoPieces = [16]*QuartoPiece{
 	},
 	// One true
 	&QuartoPiece{
+		Id: 1,
 		Dark:   true,
 		Short:  false,
 		Hollow: false,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 2,
 		Dark:   false,
 		Short:  true,
 		Hollow: false,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 3,
 		Dark:   false,
 		Short:  false,
 		Hollow: true,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 4,
 		Dark:   false,
 		Short:  false,
 		Hollow: false,
@@ -36,36 +41,42 @@ var AllQuartoPieces = [16]*QuartoPiece{
 	},
 	// Two true
 	&QuartoPiece{
+		Id: 5,
 		Dark:   true,
 		Short:  true,
 		Hollow: false,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 6,
 		Dark:   false,
 		Short:  true,
 		Hollow: true,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 7,
 		Dark:   false,
 		Short:  true,
 		Hollow: false,
 		Round:  true,
 	},
 	&QuartoPiece{
+		Id: 8,
 		Dark:   true,
 		Short:  false,
 		Hollow: true,
 		Round:  false,
 	},
 	&QuartoPiece{
+		Id: 9,
 		Dark:   true,
 		Short:  false,
 		Hollow: false,
 		Round:  true,
 	},
 	&QuartoPiece{
+		Id: 10,
 		Dark:   false,
 		Short:  false,
 		Hollow: true,
@@ -73,24 +84,28 @@ var AllQuartoPieces = [16]*QuartoPiece{
 	},
 	// Three true
 	&QuartoPiece{
+		Id: 11,
 		Dark:   false,
 		Short:  true,
 		Hollow: true,
 		Round:  true,
 	},
 	&QuartoPiece{
+		Id: 12,
 		Dark:   true,
 		Short:  false,
 		Hollow: true,
 		Round:  true,
 	},
 	&QuartoPiece{
+		Id: 13,
 		Dark:   true,
 		Short:  true,
 		Hollow: false,
 		Round:  true,
 	},
 	&QuartoPiece{
+		Id: 14,
 		Dark:   true,
 		Short:  true,
 		Hollow: true,
@@ -98,6 +113,7 @@ var AllQuartoPieces = [16]*QuartoPiece{
 	},
 	// All true
 	&QuartoPiece{
+		Id: 15,
 		Dark:   true,
 		Short:  true,
 		Hollow: true,
@@ -149,6 +165,7 @@ type GameMove struct {
 
 // Game Piece
 type QuartoPiece struct {
+	Id int
 	Dark   bool
 	Short  bool
 	Hollow bool
