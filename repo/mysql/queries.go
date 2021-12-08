@@ -21,57 +21,60 @@ var createQuartoPieceTableQuery = `CREATE TABLE if not exists QuartoPieces (
 	PRIMARY KEY (ID)
 );`
 
+var createUnusedPieceTableQuery = `CREATE TABLE if not exists UnusedPieces (
+	ID INTEGER NOT NULL,
+	Dark BOOLEAN NOT NULL,
+	Short BOOLEAN NOT NULL,
+	Hollow BOOLEAN NOT NULL,
+	Round BOOLEAN NOT NULL,
+	PRIMARY KEY (ID)
+);`
+
+//TODO: figure out UnusedPieces
 var createGameTableQuery = `CREATE TABLE if not exists Games (
 	GameID VARCHAR(100) PRIMARY KEY NOT NULL,
 	ActivityStatus BOOLEAN NOT NULL DEFAULT FALSE,
 	Winner VARCHAR(100) REFERENCES UserIDs(UserNickname),
-	ActivePlayers JSON,
-	InvitedPlayers JSON,
 	NextPlayer VARCHAR(100) REFERENCES Users(UserNickname),
-	NextPiece JSON,
-	BoardID INTEGER REFERENCES Boards(BoardID),
-	UnusedPieces JSON NOT NULL
+	NextPiece INTEGER,
+	BoardID INTEGER REFERENCES Boards(BoardID)
 );`
 
-var createinvactPlayerTablesQuery = `CREATE TABLE if not exists ActivePlayers (
-	GameID VARCHAR(100) REFERENCES Games(GameID) NOT NULL,
-	UserNickname VARCHAR(100) REFERENCES UserIDs(UserNickname) NOT NULL,
+var createInvitedPlayerTableQuery = `CREATE TABLE if not exists InvitedPlayers (
+	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
+	UserName VARCHAR(100) NOT NULL REFERENCES UserIDs(UserNickname),
+	InvitationTime TIMESTAMP DEFAULT NOW(),
 	PRIMARY KEY (GameID)
-);
-CREATE TABLE if not exists InvitedPlayers (
-	GameID VARCHAR(100) REFERENCES Games(GameID) NOT NULL,
+);`
+
+var createActivePlayerTableQuery = `CREATE TABLE if not exists ActivePlayers (
+	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
 	UserNickname VARCHAR(100) REFERENCES UserIDs(UserNickname),
-	InvitationTime TIMESTAMP NOT NULL DEFAULT NOW(),
 	PRIMARY KEY (GameID)
 );`
 
-
-//could also be INTEGER UNIQUE
 var createBoardTableQuery = `CREATE TABLE if not exists Boards (
 	BoardID INTEGER AUTO_INCREMENT NOT NULL,
-
-	x0y0 INTEGER REFERENCES QuartoPieces(ID),
-	x0y1 INTEGER REFERENCES QuartoPieces(ID),
-	x0y2 INTEGER REFERENCES QuartoPieces(ID),
-	x0y3 INTEGER REFERENCES QuartoPieces(ID),
-
-	x1y0 INTEGER REFERENCES QuartoPieces(ID),
-	x1y1 INTEGER REFERENCES QuartoPieces(ID),
-	x1y2 INTEGER REFERENCES QuartoPieces(ID),
-	x1y3 INTEGER REFERENCES QuartoPieces(ID),
-
-	x2y0 INTEGER REFERENCES QuartoPieces(ID),
-	x2y1 INTEGER REFERENCES QuartoPieces(ID),
-	x2y2 INTEGER REFERENCES QuartoPieces(ID),
-	x2y3 INTEGER REFERENCES QuartoPieces(ID),
-
-	x3y0 INTEGER REFERENCES QuartoPieces(ID),
-	x3y1 INTEGER REFERENCES QuartoPieces(ID),
-	x3y2 INTEGER REFERENCES QuartoPieces(ID),
-	x3y3 INTEGER REFERENCES QuartoPieces(ID),
-
+	x0y0 INTEGER,
+	x0y1 INTEGER,
+	x0y2 INTEGER,
+	x0y3 INTEGER,
+	x1y0 INTEGER,
+	x1y1 INTEGER,
+	x1y2 INTEGER,
+	x1y3 INTEGER,
+	x2y0 INTEGER,
+	x2y1 INTEGER,
+	x2y2 INTEGER,
+	x2y3 INTEGER,
+	x3y0 INTEGER,
+	x3y1 INTEGER,
+	x3y2 INTEGER,
+	x3y3 INTEGER,
 	PRIMARY KEY (BoardID)
 );`
+
+var createEmptyBoardQuery = `INSERT INTO Boards () VALUES ();`
 
 var useridfromuseridRetrieveQuery = `SELECT * FROM UserIDs WHERE UserID = ?;`
 
@@ -108,8 +111,6 @@ var useridInsertQuery = `INSERT INTO UserIDs (
 var gameInsertQuery = `INSERT INTO Games (
 	GameID,
 	ActivityStatus,
-	InvitedPlayers,
-	Board,
 	UnusedPieces
 ) VALUES (?, ?, ?, ?, ?);`
 

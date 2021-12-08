@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"encoding/json"
-	"log"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
@@ -22,10 +21,6 @@ func newMysqlClient(url string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.Exec(createBoardTableQuery)
-	if err != nil {
-		return nil, err
-	}
 	_, err = client.Exec(createUserTableQuery)
 	if err != nil {
 		return nil, err
@@ -35,6 +30,18 @@ func newMysqlClient(url string) (*sql.DB, error) {
 		return nil, err
 	}
 	_, err = client.Exec(createGameTableQuery)
+	if err != nil {
+		return nil, err
+	}
+	_, err = client.Exec(createBoardTableQuery)
+	if err != nil {
+		return nil, err
+	}
+	_, err = client.Exec(createInvitedPlayerTableQuery)
+	if err != nil {
+		return nil, err
+	}
+	_, err = client.Exec(createActivePlayerTableQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -114,66 +121,63 @@ func (r *mysqlRepo) GetUserIdFromUserName(username string) (*models.UserId, erro
 }
 
 func (r *mysqlRepo) AddGame(g *models.Game) error {
-	jip, err := json.Marshal(g.InvitedPlayers)
+	rs, err := r.client.Exec(createEmptyBoardQuery)
 	if err != nil {
 		return err
 	}
-	jb, err := json.Marshal(g.Board)
+	bid, err := rs.LastInsertId()
 	if err != nil {
 		return err
 	}
-	jup, err := json.Marshal(g.UnusedPieces)
-	if err != nil {
-		return err
-	}
-	err = r.client.QueryRow(gameInsertQuery,
+	err = r.client.QueryRow(
+		`INSERT INTO Games (GameId, ActivityStatus, BoardId) VALUES (?, ?, ?);`,
 		g.GameId,
 		g.ActivityStatus,
-		jip,
-		jb,
-		jup,
+		bid,
 	).Err()
-	log.Println("mysql game", g)
 	if err != nil {
 		return err
 	}
+	err = r.client.QueryRow(
+		`INSERT INTO InvitedPlayers (GameId, UserName) VALUE (?, ?);`,
+		g.GameId,
+		g.InvitedPlayers[0].UserName,
+	).Err()
+	//TODO: invite game creator
 	return nil
 }
 
 func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
-	g := &models.Game{
-		GameId:         gameid,
-		ActivityStatus: true,
-		Board:        models.EmptyBoard,
-		UnusedPieces: models.AllQuartoPieces,
-	}
-	rows, err := r.client.Query(gameRetrieveQuery, gameid)
+	g := &models.Game{}
+	rows, err := r.client.Query(
+		`SELECT
+			GameId,
+			ActivityStatus,
+			NextPlayer,
+			NextPiece,
+			UnusedPieces,
+			Winner
+		FROM Games WHERE GameId = ?;
+		`,
+		gameid,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var jap, jip, jnp, jb, jup []byte
 	for rows.Next() {
 		err = rows.Scan(
 			&g.GameId,
 			&g.ActivityStatus,
-			&g.Winner,
-			&jap,
-			&jip,
 			&g.NextPlayer,
-			&jnp,
-			&jb,
-			&jup,
+			&g.NextPiece,
+			&g.UnusedPieces,
+			&g.Winner,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
-	_ = json.Unmarshal(jap, &g.ActivePlayers)
-	_ = json.Unmarshal(jip, &g.InvitedPlayers)
-	_ = json.Unmarshal(jnp, &g.NextPiece)
-	_ = json.Unmarshal(jb, &g.Board)
-	_ = json.Unmarshal(jup, &g.UnusedPieces)
 	return g, nil
 }
 
@@ -181,6 +185,7 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 	return nil, nil
 }
 
+//TODO: rewrite
 func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
 	//TODO: check if user exists
 	uid, err := r.GetUserIdFromUserName(userid)
