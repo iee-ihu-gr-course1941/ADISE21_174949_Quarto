@@ -43,7 +43,7 @@ var gamedb models.QuartoStorage
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(MsgWelcome+"\n"))
+	w.Write([]byte(MsgWelcome + "\n"))
 	return
 }
 
@@ -131,8 +131,8 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g := &models.Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
-		Board:        models.EmptyBoard,
-		UnusedPieces: models.AllQuartoPieces,
+		Board:          models.EmptyBoard,
+		UnusedPieces:   models.AllQuartoPieces,
 	}
 	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
 	if err != nil {
