@@ -60,14 +60,6 @@ var gameRetrieveQuery = `SELECT * FROM Games WHERE GameID = ?;`
 
 var gameRetrieveAllQuery = `SELECT * FROM Games;`
 
-var gamestateRetrieveQuery = `SELECT
-	NextPlayer,
-	NextPiece,
-	Board,
-	UnusedPieces,
-	Winner
-FROM Games WHERE GameID = ?;`
-
 //TODO: order by timestamp
 //var invitedplayersRetrieveQuery = `SELECT * FROM InvitedPlayers WHERE GameID = ? ORDER BY InvitationTime DESCENDING;`
 //
