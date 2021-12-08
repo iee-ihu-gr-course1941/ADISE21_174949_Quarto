@@ -96,6 +96,7 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*
 func getGameState(w http.ResponseWriter, r *http.Request) {
 	//log.Println("getGameState called")
 	w.Header().Set("Content-Type", "application/json")
@@ -113,6 +114,7 @@ func getGameState(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+*/
 
 func createGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("createGame called")
@@ -129,10 +131,8 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g := &models.Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
-		State: &models.GameState{
-			Board:        models.EmptyBoard,
-			UnusedPieces: models.AllQuartoPieces,
-		},
+		Board:        models.EmptyBoard,
+		UnusedPieces: models.AllQuartoPieces,
 	}
 	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
 	if err != nil {
@@ -194,7 +194,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	log.Println("gameId", gameId)
 
 	//user trying to join
 	uid := &models.UserId{}
@@ -263,7 +262,7 @@ func setupRouter() http.Handler {
 	gameRouter.HandleFunc("/{game_id}", getGame).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)
-	gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
+	//gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame).Methods(http.MethodPost)
 	return router
 }

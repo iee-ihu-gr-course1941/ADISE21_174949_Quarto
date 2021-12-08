@@ -114,11 +114,11 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 	if err != nil {
 		return err
 	}
-	jb, err := json.Marshal(g.State.Board)
+	jb, err := json.Marshal(g.Board)
 	if err != nil {
 		return err
 	}
-	jup, err := json.Marshal(g.State.UnusedPieces)
+	jup, err := json.Marshal(g.UnusedPieces)
 	if err != nil {
 		return err
 	}
@@ -140,10 +140,8 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	g := &models.Game{
 		GameId:         gameid,
 		ActivityStatus: true,
-		State: &models.GameState{
-			Board:        models.EmptyBoard,
-			UnusedPieces: models.AllQuartoPieces,
-		},
+		Board:        models.EmptyBoard,
+		UnusedPieces: models.AllQuartoPieces,
 	}
 	rows, err := r.client.Query(gameRetrieveQuery, gameid)
 	if err != nil {
@@ -158,7 +156,7 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			&g.Winner,
 			&jap,
 			&jip,
-			&g.State.NextPlayer,
+			&g.NextPlayer,
 			&jnp,
 			&jb,
 			&jup,
@@ -169,42 +167,10 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	}
 	_ = json.Unmarshal(jap, &g.ActivePlayers)
 	_ = json.Unmarshal(jip, &g.InvitedPlayers)
-	_ = json.Unmarshal(jnp, &g.State.NextPiece)
-	_ = json.Unmarshal(jb, &g.State.Board)
-	_ = json.Unmarshal(jup, &g.State.UnusedPieces)
+	_ = json.Unmarshal(jnp, &g.NextPiece)
+	_ = json.Unmarshal(jb, &g.Board)
+	_ = json.Unmarshal(jup, &g.UnusedPieces)
 	return g, nil
-}
-
-func (r *mysqlRepo) GetGameState(gameid string) (*models.GameState, error) {
-	g := &models.Game{
-		GameId:         gameid,
-		ActivityStatus: true,
-		State: &models.GameState{
-			Board:        models.EmptyBoard,
-			UnusedPieces: models.AllQuartoPieces,
-		},
-	}
-	var gsb []byte
-	var gsup []byte
-	rows, err := r.client.Query(gamestateRetrieveQuery, gameid)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		err = rows.Scan(
-			&g.State.NextPlayer,
-			&g.State.NextPiece,
-			&gsb,
-			&gsup,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-	_ = json.Unmarshal(gsb, &g.State.Board)
-	_ = json.Unmarshal(gsup, &g.State.UnusedPieces)
-	return g.State, nil
 }
 
 func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
@@ -231,7 +197,7 @@ func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
 			&g.Winner,
 			&jap,
 			&jip,
-			&g.State.NextPlayer,
+			&g.NextPlayer,
 			&jnp,
 			&jb,
 			&jup,

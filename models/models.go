@@ -130,18 +130,14 @@ type UserId struct {
 
 type Game struct {
 	GameId         string     `json:"game_id"`
-	ActivePlayers  []*UserId  `json:"active_players"` //TODO: move to GameState
-	InvitedPlayers []*UserId  `json:"invited_players"` //TODO: move to GameState
+	ActivePlayers  []*UserId  `json:"active_players"`
+	InvitedPlayers []*UserId  `json:"invited_players"`
 	ActivityStatus bool       `json:"activity_status"`
-	State          *GameState `json:"game_state"`
-	Winner         *UserId    `json:"winner"`
-}
-
-type GameState struct {
 	NextPlayer   *UserId            `json:"next_player"`
 	NextPiece    *QuartoPiece       `json:"next_piece"`
 	Board        [4][4]*QuartoPiece `json:"board"`
 	UnusedPieces [16]*QuartoPiece   `json:"unused_pieces"`
+	Winner         *UserId    `json:"winner"`
 }
 
 // Move in a Game
