@@ -44,13 +44,13 @@ var createInvitedPlayerTableQuery = `CREATE TABLE if not exists InvitedPlayers (
 	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
 	UserName VARCHAR(100) NOT NULL REFERENCES UserIDs(UserNickname),
 	InvitationTime TIMESTAMP DEFAULT NOW(),
-	PRIMARY KEY (GameID)
+	PRIMARY KEY (GameID, UserName)
 );`
 
 var createActivePlayerTableQuery = `CREATE TABLE if not exists ActivePlayers (
 	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
-	UserName VARCHAR(100) REFERENCES UserIDs(UserNickname),
-	PRIMARY KEY (GameID)
+	UserName VARCHAR(100) NOT NULL REFERENCES UserIDs(UserNickname),
+	PRIMARY KEY (GameID, UserName)
 );`
 
 var createBoardTableQuery = `CREATE TABLE if not exists Boards (

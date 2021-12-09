@@ -223,7 +223,40 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		}
 		g.ActivePlayers = append(g.ActivePlayers, uid)
 	}
-	//TODO: get board
+	rows, err = r.client.Query(
+		`SELECT b.*
+			FROM Boards AS b
+			JOIN Games AS g
+			ON b.BoardID = g.BoardID
+		WHERE g.GameID = ?;`,
+		g.GameId,
+	)
+	var bid int
+	for rows.Next() {
+		err = rows.Scan(
+			&bid,
+			&g.Board[0][0],
+			&g.Board[0][1],
+			&g.Board[0][2],
+			&g.Board[0][3],
+			&g.Board[1][0],
+			&g.Board[1][1],
+			&g.Board[1][2],
+			&g.Board[1][3],
+			&g.Board[2][0],
+			&g.Board[2][1],
+			&g.Board[2][2],
+			&g.Board[2][3],
+			&g.Board[3][0],
+			&g.Board[3][1],
+			&g.Board[3][2],
+			&g.Board[3][3],
+		)
+		if err != nil {
+			//println("wowza batman, an error!: " + err.Error())
+			return nil, err
+		}
+	}
 	return g, nil
 }
 
