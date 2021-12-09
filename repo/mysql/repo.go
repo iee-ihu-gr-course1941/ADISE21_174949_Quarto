@@ -200,6 +200,30 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		}
 		g.InvitedPlayers = append(g.InvitedPlayers, uid)
 	}
+	rows, err = r.client.Query(
+		`SELECT UserName
+			FROM ActivePlayers AS ip
+			JOIN Games AS g
+			ON ip.GameID = g.GameID
+		WHERE g.GameID = ?;`,
+		g.GameId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&uname)
+		if err != nil {
+			return nil, err
+		}
+		uid, err := r.GetUserIdFromUserName(uname)
+		if err != nil {
+			return nil, err
+		}
+		g.ActivePlayers = append(g.ActivePlayers, uid)
+	}
+	//TODO: get board
 	return g, nil
 }
 
@@ -207,7 +231,6 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 	return nil, nil
 }
 
-//TODO: rewrite
 func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
 	uid, err := r.GetUserIdFromUserId(userid)
 	if err != nil {
@@ -229,5 +252,22 @@ func (r *mysqlRepo) InviteUser(userid string, gameid string) error {
 }
 
 func (r *mysqlRepo) JoinUser(userid string, gameid string) error {
+	uid, err := r.GetUserIdFromUserId(userid)
+	if err != nil {
+		return err
+	}
+	err = r.client.QueryRow(`SELECT GameId FROM Games WHERE GameId = ?`, gameid).Err()
+	if err != nil {
+		return err
+	}
+	//TODO: check if there is an open spot
+	err = r.client.QueryRow(
+		`INSERT INTO ActivePlayers (GameId, UserName) VALUE (?, ?);`,
+		gameid,
+		uid.UserName,
+	).Err()
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -49,7 +49,7 @@ var createInvitedPlayerTableQuery = `CREATE TABLE if not exists InvitedPlayers (
 
 var createActivePlayerTableQuery = `CREATE TABLE if not exists ActivePlayers (
 	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
-	UserNickname VARCHAR(100) REFERENCES UserIDs(UserNickname),
+	UserName VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	PRIMARY KEY (GameID)
 );`
 
