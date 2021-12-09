@@ -167,7 +167,7 @@ func gameCreation(t *testing.T) *models.Game {
 // Test creating a game
 func TestCreateGame(t *testing.T) {
 	// create a user
-	u := userCreation(t)
+	u := randomUserCreation(t)
 	// change URL
 	testURL := testServer.URL + "/game"
 	// create some data in the form of an io.Reader from a string of json
@@ -209,7 +209,7 @@ func TestCreateGame(t *testing.T) {
 	}
 	t.Log(g.InvitedPlayers)
 	firstInvPlayer := g.InvitedPlayers[0].UserName
-	if firstInvPlayer != "myself" {
+	if firstInvPlayer != u.UserName {
 		t.Error("expected first invited player is not who they should be")
 	}
 
