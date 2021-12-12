@@ -96,26 +96,6 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*
-func getGameState(w http.ResponseWriter, r *http.Request) {
-	//log.Println("getGameState called")
-	w.Header().Set("Content-Type", "application/json")
-	//get the path parameters
-	params := mux.Vars(r)
-	//get game_id from path param
-	gameId, _ := params["game_id"]
-	g, err := gamedb.GetGame(gameId)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(NotFound))
-		return
-	} else {
-		json.NewEncoder(w).Encode(g.State)
-	}
-	return
-}
-*/
-
 func createGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("createGame called")
 	w.Header().Set("Content-Type", "application/json")
@@ -256,16 +236,28 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
-	// Set up weclome message at api root
-	//router.HandleFunc("/", getRoot)
-	router.HandleFunc("/~it174949", getRoot)
-	router.HandleFunc("/~it174949/", getRoot)
-	router.HandleFunc("/~it174949/index.php", getRoot)
-	router.HandleFunc("/~it174949/index.php/", getRoot)
-	// Set up subrouter for user functions
-	userRouter := router.PathPrefix("/~it174949/index.php/user").Subrouter()
-	// Set up subrouter for game functions
-	gameRouter := router.PathPrefix("/~it174949/index.php/game").Subrouter()
+	// Check if the app is running on the university server
+	runningOnUsersIEEIHUGR := os.Getenv("QUARTO_USERS-IEE-IHU-GR")
+	var userRouter *mux.Router
+	var gameRouter *mux.Router
+	if runningOnUsersIEEIHUGR != "" {
+		// Set up weclome message at api root
+		router.HandleFunc("/~it174949", getRoot)
+		router.HandleFunc("/~it174949/", getRoot)
+		router.HandleFunc("/~it174949/index.php", getRoot)
+		router.HandleFunc("/~it174949/index.php/", getRoot)
+		// Set up subrouter for user functions
+		userRouter = router.PathPrefix("/~it174949/index.php/user").Subrouter()
+		// Set up subrouter for game functions
+		gameRouter = router.PathPrefix("/~it174949/index.php/game").Subrouter()
+	} else {
+		// Set up weclome message at api root
+		router.HandleFunc("/", getRoot)
+		// Set up subrouter for user functions
+		userRouter = router.PathPrefix("/~it174949/index.php/user").Subrouter()
+		// Set up subrouter for game functions
+		gameRouter = router.PathPrefix("/~it174949/index.php/game").Subrouter()
+	}
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/register", createUser).Methods(http.MethodPost) //not REST-y
