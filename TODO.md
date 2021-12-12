@@ -1,18 +1,30 @@
 # Things TODO
 
+## inviteToGame()
+Check if game exists before inviting user
+
+## Refactor models
+Some models are not working out very well with databases
+
+### User
+Look into merging User and UserID
+
+### Game
+This has multiple problems
+
+#### Relational db issues
+A lot of things don't work with relational databases so we need to get creative.
+Investigate how quartopiece, board, player lists, quartopiece lists can be stored.
+Look into [storing stuff as JSON](https://www.digitalocean.com/community/tutorials/working-with-json-in-mysql) as a possible solution
+
+#### Active/Inactive Players
+This needs to be moved to GameState which will cause breakage.
+Needs to be done before DBs are added
+
+
 ## Functions to implement
 yet unimplemented functions
 ```go
-func getGame(w http.ResponseWriter, r *http.Request) {}
-
-func getGameState(w http.ResponseWriter, r *http.Request) {}
-
-func createGame(w http.ResponseWriter, r *http.Request) {}
-
-func inviteToGame(w http.ResponseWriter, r *http.Request) {}
-
-func joinGame(w http.ResponseWriter, r *http.Request) {}
-
 func playInGame(w http.ResponseWriter, r *http.Request) {}
 
 func checkGameState(gameId string) {}

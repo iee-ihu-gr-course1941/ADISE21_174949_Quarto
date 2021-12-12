@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
+	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mysql"
 	"github.com/teris-io/shortid"
 	"log"
 	"net/http"
@@ -42,7 +43,7 @@ var gamedb models.QuartoStorage
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(MsgWelcome+"\n"))
+	w.Write([]byte(MsgWelcome + "\n"))
 	return
 }
 
@@ -95,24 +96,6 @@ func getGame(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func getGameState(w http.ResponseWriter, r *http.Request) {
-	//log.Println("getGameState called")
-	w.Header().Set("Content-Type", "application/json")
-	//get the path parameters
-	params := mux.Vars(r)
-	//get game_id from path param
-	gameId, _ := params["game_id"]
-	g, err := gamedb.GetGame(gameId)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(NotFound))
-		return
-	} else {
-		json.NewEncoder(w).Encode(g.State)
-	}
-	return
-}
-
 func createGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("createGame called")
 	w.Header().Set("Content-Type", "application/json")
@@ -128,10 +111,8 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g := &models.Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
-		State: &models.GameState{
-			Board:        models.EmptyBoard,
-			UnusedPieces: models.AllQuartoPieces,
-		},
+		Board:          models.EmptyBoard,
+		UnusedPieces:   models.AllQuartoPieces,
 	}
 	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
 	if err != nil {
@@ -193,7 +174,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-	log.Println("gameId", gameId)
 
 	//user trying to join
 	uid := &models.UserId{}
@@ -244,15 +224,40 @@ func setupHTTPPort() string {
 	return httpPort
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
+}
+
 func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
-	// Set up weclome message at api root
-	router.HandleFunc("/", getRoot).Methods(http.MethodGet)
-	// Set up subrouter for user functions
-	userRouter := router.PathPrefix("/user").Subrouter()
-	// Set up subrouter for game functions
-	gameRouter := router.PathPrefix("/game").Subrouter()
+	// Check if the app is running on the university server
+	runningOnUsersIEEIHUGR := os.Getenv("QUARTO_USERS-IEE-IHU-GR")
+	var userRouter *mux.Router
+	var gameRouter *mux.Router
+	if runningOnUsersIEEIHUGR != "" {
+		// Set up weclome message at api root
+		router.HandleFunc("/~it174949", getRoot)
+		router.HandleFunc("/~it174949/", getRoot)
+		router.HandleFunc("/~it174949/index.php", getRoot)
+		router.HandleFunc("/~it174949/index.php/", getRoot)
+		// Set up subrouter for user functions
+		userRouter = router.PathPrefix("/~it174949/index.php/user").Subrouter()
+		// Set up subrouter for game functions
+		gameRouter = router.PathPrefix("/~it174949/index.php/game").Subrouter()
+	} else {
+		// Set up weclome message at api root
+		router.HandleFunc("/", getRoot)
+		// Set up subrouter for user functions
+		userRouter = router.PathPrefix("/~it174949/index.php/user").Subrouter()
+		// Set up subrouter for game functions
+		gameRouter = router.PathPrefix("/~it174949/index.php/game").Subrouter()
+	}
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/register", createUser).Methods(http.MethodPost) //not REST-y
@@ -262,14 +267,32 @@ func setupRouter() http.Handler {
 	gameRouter.HandleFunc("/{game_id}", getGame).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)
-	gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
+	//gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame).Methods(http.MethodPost)
+	router.Use(loggingMiddleware)
 	return router
 }
 
 func init() {
 	// Set up storage
-	gamedb, _ = mock.NewMockDB()
+	mysqlURL := os.Getenv("MYSQL_URL")
+	if mysqlURL != "" {
+		if mysqlURL == "test" {
+			db, err := mysql.NewMysqlRepo("tester:Apasswd@tcp(localhost:3306)/tester")
+			if err != nil {
+				log.Fatalf("error %v", err)
+			}
+			gamedb = db
+		} else {
+			db, err := mysql.NewMysqlRepo(mysqlURL)
+			if err != nil {
+				log.Fatalf("error %v", err)
+			}
+			gamedb = db
+		}
+		return
+	}
+	gamedb, _ = mock.NewMockDB() //Error ignored because it's always nil
 }
 
 func main() {

@@ -15,9 +15,9 @@ var mymockdb *MockDB
 
 func NewMockDB() (*MockDB, error) {
 	mymockdb = &MockDB{
-		Users: []*models.User{},
+		Users:   []*models.User{},
 		UserIds: []*models.UserId{},
-		Games: []*models.Game{},
+		Games:   []*models.Game{},
 	}
 	return mymockdb, nil
 }
@@ -59,15 +59,6 @@ func (m *MockDB) GetGame(gameid string) (*models.Game, error) {
 	for _, g := range m.Games {
 		if g.GameId == gameid {
 			return g, nil
-		}
-	}
-	return nil, fmt.Errorf("game with id", gameid, "not found")
-}
-
-func (m *MockDB) GetGameState(gameid string) (*models.GameState, error) {
-	for _, g := range m.Games {
-		if g.GameId == gameid {
-			return g.State, nil
 		}
 	}
 	return nil, fmt.Errorf("game with id", gameid, "not found")
