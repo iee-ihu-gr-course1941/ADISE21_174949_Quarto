@@ -244,15 +244,28 @@ func setupHTTPPort() string {
 	return httpPort
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
+}
+
 func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
 	// Set up weclome message at api root
-	router.HandleFunc("/", getRoot).Methods(http.MethodGet)
+	//router.HandleFunc("/", getRoot)
+	router.HandleFunc("/~it174949", getRoot)
+	router.HandleFunc("/~it174949/", getRoot)
+	router.HandleFunc("/~it174949/index.php", getRoot)
+	router.HandleFunc("/~it174949/index.php/", getRoot)
 	// Set up subrouter for user functions
-	userRouter := router.PathPrefix("/user").Subrouter()
+	userRouter := router.PathPrefix("/~it174949/index.php/user").Subrouter()
 	// Set up subrouter for game functions
-	gameRouter := router.PathPrefix("/game").Subrouter()
+	gameRouter := router.PathPrefix("/~it174949/index.php/game").Subrouter()
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
 	userRouter.HandleFunc("/register", createUser).Methods(http.MethodPost) //not REST-y
@@ -264,6 +277,7 @@ func setupRouter() http.Handler {
 	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)
 	//gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame).Methods(http.MethodPost)
+	router.Use(loggingMiddleware)
 	return router
 }
 
