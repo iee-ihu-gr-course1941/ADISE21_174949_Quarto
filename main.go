@@ -237,7 +237,7 @@ func setupRouter() http.Handler {
 	// Set up router
 	router := mux.NewRouter()
 	// Check if the app is running on the university server
-	runningOnUsersIEEIHUGR := os.Getenv("QUARTO_USERS-IEE-IHU-GR")
+	runningOnUsersIEEIHUGR := os.Getenv("QUARTO_USERS_IEE_IHU_GR")
 	var userRouter *mux.Router
 	var gameRouter *mux.Router
 	if runningOnUsersIEEIHUGR != "" {
