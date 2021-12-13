@@ -254,9 +254,9 @@ func setupRouter() http.Handler {
 		// Set up weclome message at api root
 		router.HandleFunc("/", getRoot)
 		// Set up subrouter for user functions
-		userRouter = router.PathPrefix("/~it174949/index.php/user").Subrouter()
+		userRouter = router.PathPrefix("/user").Subrouter()
 		// Set up subrouter for game functions
-		gameRouter = router.PathPrefix("/~it174949/index.php/game").Subrouter()
+		gameRouter = router.PathPrefix("/game").Subrouter()
 	}
 	// Set up routes for user API
 	userRouter.HandleFunc("", createUser).Methods(http.MethodPost)
