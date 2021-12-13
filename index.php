@@ -2,7 +2,7 @@
 
 /*
  * no.php (c) 2016, 2017 Michael Franzl
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -21,7 +21,6 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 
 $backend_url = "http://localhost:8000";
 $backend_info = parse_url($backend_url);
@@ -72,8 +71,7 @@ function getRequestHeaders($multipart_delimiter=NULL) {
     return $headers;
 }
 
-function build_domain_regex($hostname)
-{
+function build_domain_regex($hostname) {
 	$names = explode('.', $hostname); //assumes main domain is the TLD
 	$regex = "";
 	for ($i= 0; $i < count ($names)-2; $i++)
@@ -127,7 +125,7 @@ if ( strtolower($_SERVER['REQUEST_METHOD']) == 'post' ) {
 
     curl_setopt( $curl, CURLOPT_POSTFIELDS, $post_data );
 }
-  
+
 $contents = curl_exec( $curl ); # reverse proxy. the actual request to the backend server.
 curl_close( $curl ); # curl is done now
 
