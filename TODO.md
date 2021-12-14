@@ -1,7 +1,7 @@
 # Things TODO
 
-## inviteToGame()
-Check if game exists before inviting user
+## Store every game move
+Add function to QuartoStorage interface for storing GameMove
 
 ## Refactor models
 Some models are not working out very well with databases
@@ -11,9 +11,6 @@ Look into merging User and UserID
 
 ### Game
 This has some problems
-
-#### Active/Inactive Players
-This needs to be moved to GameState which will cause breakage.
 
 ## Functions to implement
 yet unimplemented functions
@@ -27,7 +24,7 @@ func checkGameState(gameId string) {}
 Handle same user being able to be added twice to stuff
 
 ## Add Databases
-Currently only a mock in-memory repo exists but in prod we need DBs
+Currently only mock and mysql exist but I like postgres
 
 ### Postgres
 Depends on time. Will probably use [this driver](https://github.com/jackc/pgx)
