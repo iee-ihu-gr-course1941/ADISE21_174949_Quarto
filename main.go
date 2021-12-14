@@ -228,10 +228,10 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(NotFound))
+	// if requesting player is not player playing next, error out
+	if g.NextPlayer.UserId != uid.UserId {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(Unauth))
 		return
 	}
 	g, err := gamedb.GetGame(gameId)
@@ -246,13 +246,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error": "need exactly 2 players to play this game"}`))
 		return
 	}
-	// if requesting player is not player playing next, error out
-	if g.NextPlayer.UserId != uid.UserId {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(Unauth))
-		return
-	}
-	// game move
+	//get game move
 	gameMove := &models.GameMove{}
 	err = json.NewDecoder(r.Body).Decode(gameMove)
 	if err != nil {
@@ -261,7 +255,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
-	// make sure the game move's next piece has been set
+	//make sure the game move's next piece has been set
 	if gameMove.NextPiece == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(ServerError))
@@ -283,6 +277,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"message": "` + uid.UserName + ` is the winner!"}`))
 		return
 	} else {
+		//TODO: toggle next player
 		err := gamedb.ChangeGame(g)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
