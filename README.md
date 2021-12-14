@@ -56,5 +56,5 @@ curl -X POST -H "Content-Type: application/json" -d '{"user_id": "G8boeMc7g"}' l
 
 returns:
 ```json
-{"game_id":"NvFtm757g","players":[{"username":"","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
+{"game_id":"NvFtm757g","players":[{"username":"someuser","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
 ```
