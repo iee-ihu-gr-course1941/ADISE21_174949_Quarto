@@ -246,25 +246,12 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error": "need exactly 2 players to play this game"}`))
 		return
 	}
-/*TODO: investigate
-	// player playing next
-	np := g.NextPlayer
 	// if requesting player is not player playing next, error out
-	if np.UserId != uid.UserId {
+	if g.NextPlayer.UserId != uid.UserId {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(Unauth))
 		return
 	}
-	// piece to be placed
-	var pis *models.QuartoPiece
-	// make sure the game's next piece has been set
-	if g.NextPiece == nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(ServerError))
-		return
-	}
-	pis = g.NextPiece
-*/
 	// game move
 	gameMove := &models.GameMove{}
 	err = json.NewDecoder(r.Body).Decode(gameMove)
@@ -283,21 +270,28 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		g.NextPiece = gameMove.NextPiece
 	}
 	//TODO: maybe return game state somewhere here
-	//TODO: deal with ActivityStatus
 	done := checkGameState(g.GameId)
 	if done {
 		g.ActivityStatus = false
 		g.Winner = uid
+		err := gamedb.ChangeGame(g)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "couldn't register move"}`))
+		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message": "` + uid.UserName + ` is the winner!"}`))
 		return
 	} else {
-		//change nextplayer
-		//change nextpiece
+		err := gamedb.ChangeGame(g)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "couldn't register move"}`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(GameNotFound))
-	return
 }
 
 func ifQuarto(qp [4]*models.QuartoPiece) bool {
@@ -316,7 +310,8 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 }
 
 //TODO: fix and convert to use quartostorage interface
-func checkGameState(gameId string) bool {return false}
+func checkGameState(gameId string) bool { return false }
+
 /*
 	var gameState *GameState
 	for _, g := range testGames {
