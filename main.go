@@ -140,21 +140,25 @@ func inviteToGame(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	//get game_id from path param
 	gameId, _ := params["game_id"]
-
+	//check if game exists
+	_, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(GameNotFound))
+		return
+	}
 	//user to be invited
 	var uid *models.UserId = nil
 	//get the name of the user to be invited from path param
 	inviteeName, _ := params["username"]
 	//see if user exists in the user database
-
-	uid, err := gamedb.GetUserIdFromUserName(inviteeName)
+	uid, err = gamedb.GetUserIdFromUserName(inviteeName)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(UserNotFound))
 		return
 	}
-
-	//append player to game if game exists
+	//append player to game
 	err = gamedb.InviteUser(uid.UserId, gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -207,13 +211,164 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//TODO: fix and convert to use quartostorage interface
 func playInGame(w http.ResponseWriter, r *http.Request) {
-	// Empty for now
+	//log.Println("playInGame called")
+	w.Header().Set("Content-Type", "application/json")
+	//get the path parameters
+	params := mux.Vars(r)
+	//get game_id from path param
+	gameId, _ := params["game_id"]
+
+	//user trying to join
+	uid := &models.UserId{}
+	err := json.NewDecoder(r.Body).Decode(uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(NotFound))
+		return
+	}
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(NotFound))
+		return
+	}
+	//check if two players have joined
+	if len(g.ActivePlayers) != 2 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "need exactly 2 players to play this game"}`))
+		return
+	}
+/*TODO: investigate
+	// player playing next
+	np := g.NextPlayer
+	// if requesting player is not player playing next, error out
+	if np.UserId != uid.UserId {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(Unauth))
+		return
+	}
+	// piece to be placed
+	var pis *models.QuartoPiece
+	// make sure the game's next piece has been set
+	if g.NextPiece == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(ServerError))
+		return
+	}
+	pis = g.NextPiece
+*/
+	// game move
+	gameMove := &models.GameMove{}
+	err = json.NewDecoder(r.Body).Decode(gameMove)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
+	// make sure the game move's next piece has been set
+	if gameMove.NextPiece == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(ServerError))
+		return
+	} else {
+		g.NextPiece = gameMove.NextPiece
+	}
+	//TODO: maybe return game state somewhere here
+	//TODO: deal with ActivityStatus
+	done := checkGameState(g.GameId)
+	if done {
+		g.ActivityStatus = false
+		g.Winner = uid
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"message": "` + uid.UserName + ` is the winner!"}`))
+		return
+	} else {
+		//change nextplayer
+		//change nextpiece
+	}
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(GameNotFound))
+	return
 }
 
-func checkGameState(gameId string) {
-	// Empty for now
+func ifQuarto(qp [4]*models.QuartoPiece) bool {
+	//TODO: replace with x, y, z, w vars for readability
+	if qp[0].Dark == qp[1].Dark == qp[2].Dark == qp[3].Dark {
+		return true
+	} else if qp[0].Short == qp[1].Short == qp[2].Short == qp[3].Short {
+		return true
+	} else if qp[0].Hollow == qp[1].Hollow == qp[2].Hollow == qp[3].Hollow {
+		return true
+	} else if qp[0].Round == qp[1].Round == qp[2].Round == qp[3].Round {
+		return true
+	} else {
+		return false
+	}
 }
+
+//TODO: fix and convert to use quartostorage interface
+func checkGameState(gameId string) bool {return false}
+/*
+	var gameState *GameState
+	for _, g := range testGames {
+		if g.GameId == gameId {
+			gameState = g.State
+		}
+	}
+	board := gameState.Board
+	unusedPieces := gameState.UnusedPieces
+	log.Println("unusedPieces", unusedPieces)
+	// Statically define diagonal and reverse diagonal
+	diag1 := [4]*QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
+	diag2 := [4]*QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
+	// Go through the board and check if anything qualifies as quarto
+	for i, row := range board {
+		log.Println(i, row)
+		// Don't bother if 4 pieces haven't been on the board
+		if cap(unusedPieces) > 12 {
+			break
+		}
+		// Don't bother if row isn't full
+		if cap(row) < 4 {
+			break
+		}
+		// Check if current row has quarto
+		if ifQuarto(row) {
+			return true
+		}
+		// Collect items from column
+		var col [4]*QuartoPiece
+		for j, colItem := range row {
+			log.Println(j, col)
+			log.Println(j, colItem)
+			col[j] = colItem
+		}
+		// Check if there are 4 pieces in the column
+		if cap(col) == 4 && ifQuarto(col) {
+			return true
+		}
+		// Check if there are 4 pieces in the diagonal
+		if cap(diag1) == 4 && ifQuarto(diag1) {
+			return true
+		}
+		// Check if there are 4 pieces in the reverse diagonal
+		if cap(diag2) == 4 && ifQuarto(diag2) {
+			return true
+		}
+	}
+	// Return false if none of the above succeeded
+	return false
+}
+*/
 
 // Function to set server HTTP port
 func setupHTTPPort() string {
@@ -264,6 +419,7 @@ func setupRouter() http.Handler {
 	// Set up routes for game API
 	gameRouter.HandleFunc("", createGame).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/new", createGame).Methods(http.MethodPost) //not REST-y
+	//gameRouter.HandleFunc("/all", getGames).Methods(http.MethodGet) //not REST-y
 	gameRouter.HandleFunc("/{game_id}", getGame).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/join", joinGame).Methods(http.MethodPost)
 	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)

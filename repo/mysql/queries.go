@@ -35,7 +35,7 @@ var createGameTableQuery = `CREATE TABLE if not exists Games (
 	GameID VARCHAR(100) PRIMARY KEY NOT NULL,
 	ActivityStatus BOOLEAN NOT NULL DEFAULT FALSE,
 	Winner VARCHAR(100) REFERENCES UserIDs(UserNickname),
-	NextPlayer VARCHAR(100) REFERENCES Users(UserNickname),
+	NextPlayer VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	NextPiece INTEGER,
 	BoardID INTEGER REFERENCES Boards(BoardID)
 );`
@@ -114,4 +114,9 @@ var gameInsertQuery = `INSERT INTO Games (
 	UnusedPieces
 ) VALUES (?, ?, ?, ?, ?);`
 
-var gameUpdateQuery = `UPDATE Games SET InvitedPlayers = ? WHERE GameID = ?;`
+var gameUpdateQuery = `UPDATE Games
+	SET ActivityStatus = ?,
+	NextPlayer = ?,
+	NextPiece = ?,
+	Winner = ?,
+	WHERE GameID = ?;`
