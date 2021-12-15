@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mysql"
@@ -228,16 +229,16 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	// if requesting player is not player playing next, error out
-	if g.NextPlayer.UserId != uid.UserId {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(Unauth))
-		return
-	}
 	g, err := gamedb.GetGame(gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(NotFound))
+		return
+	}
+	// if requesting player is not player playing next, error out
+	if g.NextPlayer.UserId != uid.UserId {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(Unauth))
 		return
 	}
 	//check if two players have joined
@@ -371,8 +372,7 @@ func setupHTTPPort() string {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Do stuff here
-		log.Println(r.RequestURI)
+		log.Println("logging Middleware", r.RequestURI)
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
 	})
@@ -449,5 +449,5 @@ func main() {
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
 	// One-liner to start the server or print error
-	log.Fatal(http.ListenAndServe(":"+httpPort, router))
+	log.Fatal(http.ListenAndServe(":"+httpPort, handlers.LoggingHandler(os.Stdout, router)))
 }
