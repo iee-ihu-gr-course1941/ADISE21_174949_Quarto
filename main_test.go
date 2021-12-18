@@ -11,8 +11,8 @@ import (
 	"testing"
 )
 
-// Test HTTP server
-var testServer *httptest.Server = httptest.NewServer(setupRouter())
+// Test HTTP server without logging middleware
+var testServer *httptest.Server = httptest.NewServer(setupRouter(false))
 
 // Function for creating a user for use only outside TestCreateUser
 func randomUserCreation(t *testing.T) *models.UserId {
@@ -377,4 +377,8 @@ func TestJoinGame(t *testing.T) {
 	if string(body) != MsgSuccess {
 		t.Error("inviting user did not yield success message")
 	}
+}
+
+func TestPlayInGame(t *testing.T) {
+	t.Log("TestPlayInGame not implemented yet")
 }

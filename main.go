@@ -278,7 +278,11 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"message": "` + uid.UserName + ` is the winner!"}`))
 		return
 	} else {
-		//TODO: toggle next player
+		if uid.UserName == g.ActivePlayers[0].UserName {
+			g.NextPlayer = g.ActivePlayers[1]
+		} else if uid.UserName == g.ActivePlayers[1].UserName {
+			g.NextPlayer = g.ActivePlayers[0]
+		}
 		err := gamedb.ChangeGame(g)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -306,21 +310,17 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 }
 
 //TODO: fix and convert to use quartostorage interface
-func checkGameState(gameId string) bool { return false }
-
-/*
-	var gameState *GameState
-	for _, g := range testGames {
-		if g.GameId == gameId {
-			gameState = g.State
-		}
+func checkGameState(gameId string) bool {
+	g, err := gamedb.GetGame(gameId)
+	if err != nil {
+		return false
 	}
-	board := gameState.Board
-	unusedPieces := gameState.UnusedPieces
+	board := g.Board
+	unusedPieces := g.UnusedPieces
 	log.Println("unusedPieces", unusedPieces)
 	// Statically define diagonal and reverse diagonal
-	diag1 := [4]*QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
-	diag2 := [4]*QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
+	diag1 := [4]*models.QuartoPiece{board[0][0], board[1][1], board[2][2], board[3][3]}
+	diag2 := [4]*models.QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
 	// Go through the board and check if anything qualifies as quarto
 	for i, row := range board {
 		log.Println(i, row)
@@ -337,7 +337,7 @@ func checkGameState(gameId string) bool { return false }
 			return true
 		}
 		// Collect items from column
-		var col [4]*QuartoPiece
+		var col [4]*models.QuartoPiece
 		for j, colItem := range row {
 			log.Println(j, col)
 			log.Println(j, colItem)
@@ -359,7 +359,6 @@ func checkGameState(gameId string) bool { return false }
 	// Return false if none of the above succeeded
 	return false
 }
-*/
 
 // Function to set server HTTP port
 func setupHTTPPort() string {
@@ -378,7 +377,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func setupRouter() http.Handler {
+func setupRouter(enableLoggingMiddleware bool) http.Handler {
 	// Set up router
 	router := mux.NewRouter()
 	// Check if the app is running on the university server
@@ -415,7 +414,9 @@ func setupRouter() http.Handler {
 	gameRouter.HandleFunc("/{game_id}/play", playInGame).Methods(http.MethodPost)
 	//gameRouter.HandleFunc("/{game_id}/state", getGameState).Methods(http.MethodGet)
 	gameRouter.HandleFunc("/{game_id}/invite/{username}", inviteToGame).Methods(http.MethodPost)
-	router.Use(loggingMiddleware)
+	if enableLoggingMiddleware {
+		router.Use(loggingMiddleware)
+	}
 	return router
 }
 
@@ -444,10 +445,15 @@ func init() {
 func main() {
 	// Determine port to run at
 	httpPort := setupHTTPPort()
-	// Set up the router for the API
-	router := setupRouter()
 	// Print a message so there is feedback to the app admin
 	log.Println("starting server at port", httpPort)
-	// One-liner to start the server or print error
-	log.Fatal(http.ListenAndServe(":"+httpPort, handlers.LoggingHandler(os.Stdout, router)))
+	// Start server with or without the logging middleware
+	enableLoggingMiddleware := os.Getenv("ENABLE_LOGGING_MIDDLEWARE")
+	if enableLoggingMiddleware != "" {
+		router := setupRouter(true)
+		log.Fatal(http.ListenAndServe(":"+httpPort, handlers.LoggingHandler(os.Stdout, router)))
+	} else {
+		router := setupRouter(false)
+		log.Fatal(http.ListenAndServe(":"+httpPort, router))
+	}
 }
