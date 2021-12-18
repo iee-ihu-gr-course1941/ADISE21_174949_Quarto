@@ -1,5 +1,8 @@
 # Things TODO
 
+## Handle game.UnusedPieces
+Removal of a QuartoPiece from UnusedPieces is non-existent and should be implemented
+
 ## Store every game move
 Add function to QuartoStorage interface for storing GameMove
 
