@@ -149,6 +149,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 }
 
 func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
+	//load basic game data
 	g := &models.Game{}
 	rows, err := r.client.Query(
 		`SELECT
@@ -176,7 +177,8 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			return nil, err
 		}
 	}
-	var uname string
+	//load invitedplayers
+	var ipuname string
 	rows, err = r.client.Query(
 		`SELECT UserName
 			FROM InvitedPlayers AS ip
@@ -190,16 +192,18 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&uname)
+		err = rows.Scan(&ipuname)
 		if err != nil {
 			return nil, err
 		}
-		uid, err := r.GetUserIdFromUserName(uname)
+		uid, err := r.GetUserIdFromUserName(ipuname)
 		if err != nil {
 			return nil, err
 		}
 		g.InvitedPlayers = append(g.InvitedPlayers, uid)
 	}
+	//load activeplayers
+	var apuname string
 	rows, err = r.client.Query(
 		`SELECT UserName
 			FROM ActivePlayers AS ip
@@ -213,16 +217,17 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&uname)
+		err = rows.Scan(&apuname)
 		if err != nil {
 			return nil, err
 		}
-		uid, err := r.GetUserIdFromUserName(uname)
+		uid, err := r.GetUserIdFromUserName(apuname)
 		if err != nil {
 			return nil, err
 		}
 		g.ActivePlayers = append(g.ActivePlayers, uid)
 	}
+	//load board data
 	rows, err = r.client.Query(
 		`SELECT b.*
 			FROM Boards AS b
@@ -293,6 +298,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game) error {
 	if err != nil {
 		return err
 	}
+	//TODO: handle unused pieces
 	err = r.client.QueryRow(gameUpdateQuery,
 		g.ActivityStatus,
 		g.NextPlayer.UserName,
