@@ -271,24 +271,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game) error {
 	if err != nil || bid == -1 {
 		return err
 	}
-	err = r.client.QueryRow(`UPDATE Boards
-		SET x0y0 = ?,
-			x0y1 = ?,
-			x0y2 = ?,
-			x0y3 = ?,
-			x1y0 = ?,
-			x1y1 = ?,
-			x1y2 = ?,
-			x1y3 = ?,
-			x2y0 = ?,
-			x2y1 = ?,
-			x2y2 = ?,
-			x2y3 = ?,
-			x3y0 = ?,
-			x3y1 = ?,
-			x3y2 = ?,
-			x3y3 = ?
-		WHERE BoardID = ?`,
+	err = r.client.QueryRow(boardUpdateQuery,
 		&g.Board[0][0].Id,
 		&g.Board[0][1].Id,
 		&g.Board[0][2].Id,

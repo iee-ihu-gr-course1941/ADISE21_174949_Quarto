@@ -30,7 +30,6 @@ var createUnusedPieceTableQuery = `CREATE TABLE if not exists UnusedPieces (
 	PRIMARY KEY (ID)
 );`
 
-//TODO: figure out UnusedPieces
 var createGameTableQuery = `CREATE TABLE if not exists Games (
 	GameID VARCHAR(100) PRIMARY KEY NOT NULL,
 	ActivityStatus BOOLEAN NOT NULL DEFAULT FALSE,
@@ -38,6 +37,7 @@ var createGameTableQuery = `CREATE TABLE if not exists Games (
 	NextPlayer VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	NextPiece INTEGER,
 	BoardID INTEGER REFERENCES Boards(BoardID)
+	UnusedPiecesID INTEGER REFERENCES Boards(BoardID)
 );`
 
 var createInvitedPlayerTableQuery = `CREATE TABLE if not exists InvitedPlayers (
@@ -72,6 +72,27 @@ var createBoardTableQuery = `CREATE TABLE if not exists Boards (
 	x3y2 INTEGER,
 	x3y3 INTEGER,
 	PRIMARY KEY (BoardID)
+);`
+
+var createUnusedPiecesTableQuery = `CREATE TABLE if not exists UnusedPieces (
+	UnusedPiecesID INTEGER AUTO_INCREMENT NOT NULL,
+	up0 INTEGER DEFAULT 0,
+	up1 INTEGER DEFAULT 1,
+	up2 INTEGER DEFAULT 2,
+	up3 INTEGER DEFAULT 3,
+	up4 INTEGER DEFAULT 4,
+	up5 INTEGER DEFAULT 5,
+	up6 INTEGER DEFAULT 6,
+	up7 INTEGER DEFAULT 7,
+	up8 INTEGER DEFAULT 8,
+	up9 INTEGER DEFAULT 9,
+	up10 INTEGER DEFAULT 10,
+	up11 INTEGER DEFAULT 11,
+	up12 INTEGER DEFAULT 12,
+	up13 INTEGER DEFAULT 13,
+	up14 INTEGER DEFAULT 14,
+	up15 INTEGER DEFAULT 15,
+	PRIMARY KEY (UnusedPiecesID)
 );`
 
 var createEmptyBoardQuery = `INSERT INTO Boards () VALUES ();`
@@ -120,3 +141,22 @@ var gameUpdateQuery = `UPDATE Games
 	NextPiece = ?,
 	Winner = ?,
 	WHERE GameID = ?;`
+
+var boardUpdateQuery = `UPDATE Boards
+	SET x0y0 = ?,
+		x0y1 = ?,
+		x0y2 = ?,
+		x0y3 = ?,
+		x1y0 = ?,
+		x1y1 = ?,
+		x1y2 = ?,
+		x1y3 = ?,
+		x2y0 = ?,
+		x2y1 = ?,
+		x2y2 = ?,
+		x2y3 = ?,
+		x3y0 = ?,
+		x3y1 = ?,
+		x3y2 = ?,
+		x3y3 = ?
+	WHERE BoardID = ?`
