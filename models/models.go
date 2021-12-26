@@ -123,10 +123,10 @@ var AllQuartoPieces = [16]*QuartoPiece{
 
 // Variable of empty game board
 var EmptyBoard = [4][4]*QuartoPiece{
-	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
-	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
-	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
-	{&QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}, &QuartoPiece{}},
+	{&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}},
+	{&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}},
+	{&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}},
+	{&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}},
 }
 
 // Constant for maximum amount of players per game

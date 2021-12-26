@@ -258,7 +258,6 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			&g.Board[3][3],
 		)
 		if err != nil {
-			//println("wowza batman, an error!: " + err.Error())
 			return nil, err
 		}
 	}

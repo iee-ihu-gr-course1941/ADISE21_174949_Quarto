@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mock"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/repo/mysql"
@@ -212,7 +212,6 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//TODO: fix and convert to use quartostorage interface
 func playInGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("playInGame called")
 	w.Header().Set("Content-Type", "application/json")
