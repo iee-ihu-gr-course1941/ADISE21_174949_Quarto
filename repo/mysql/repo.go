@@ -298,12 +298,18 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if err != nil {
 		return err
 	}
-	err = r.client.QueryRow(
-		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = ?`,
-		bid,
-	).Err()
+	rows, err := r.client.Query(
+		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = `+strconv.Itoa(bid)+`;`,
+	)
 	if err != nil {
 		return err
+	}
+	var upid int
+	for rows.Next() {
+		err = rows.Scan(&upid)
+		if err != nil {
+			return err
+		}
 	}
 	pieceId := gm.NextPiece.Id
 	err = r.client.QueryRow(
