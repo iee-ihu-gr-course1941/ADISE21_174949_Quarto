@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"strconv"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
 )
@@ -268,7 +269,7 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 	return nil, nil
 }
 
-func (r *mysqlRepo) ChangeGame(g *models.Game) error {
+func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	//board
 	var bid int = -1
 	err := r.client.QueryRow(`SELECT BoardID FROM Games WHERE GameID = ?`, g.GameId).Scan(&bid)
@@ -297,7 +298,21 @@ func (r *mysqlRepo) ChangeGame(g *models.Game) error {
 	if err != nil {
 		return err
 	}
-	//TODO: handle unused pieces
+	err = r.client.QueryRow(
+		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = ?`,
+		bid,
+	).Err()
+	if err != nil {
+		return err
+	}
+	pieceId := gm.NextPiece.Id
+	err = r.client.QueryRow(
+		`UPDATE UnusedPieces SET up`+strconv.Itoa(pieceId)+` = NULL WHERE UnusedPiecesID = ?;`,
+		upid, //TODO: get unusedpieces id
+	).Err()
+	if err != nil {
+		return err
+	}
 	err = r.client.QueryRow(gameUpdateQuery,
 		g.ActivityStatus,
 		g.NextPlayer.UserName,

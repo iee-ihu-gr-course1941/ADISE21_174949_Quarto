@@ -64,7 +64,7 @@ func (m *MockDB) GetGame(gameid string) (*models.Game, error) {
 	return nil, fmt.Errorf("game with id", gameid, "not found")
 }
 
-func (m *MockDB) ChangeGame(gameNew *models.Game) error {
+func (m *MockDB) ChangeGame(gameNew *models.Game, _ *models.GameMove) error {
 	for _, gameOld := range m.Games {
 		if gameOld.GameId == gameNew.GameId {
 			gameOld = gameNew
