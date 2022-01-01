@@ -1,8 +1,8 @@
 #!/bin/sh -x
 
 # base URL
-#BASE_URL="localhost:8000"
-BASE_URL="https://users.iee.ihu.gr/~it174949/index.php"
+BASE_URL="localhost:8000"
+#BASE_URL="https://users.iee.ihu.gr/~it174949/index.php"
 
 # make user, get uid json
 U=$(curl -s -X POST\
@@ -31,7 +31,7 @@ U2=$(curl -s -X POST\
 
 U2UN=$(echo ${U2} | jq -r '.username')
 
-LNK="${LNK}/invite/${U2UN}"
+LNK="${BASE_URL}/game/${GID}/invite/${U2UN}"
 
 INV=$(curl -s -X POST -H "Content-Type: application/json" -d "${U}" "${LNK}")
 
