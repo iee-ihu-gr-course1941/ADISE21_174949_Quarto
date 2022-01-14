@@ -36,7 +36,7 @@ var createGameTableQuery = `CREATE TABLE if not exists Games (
 	Winner VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	NextPlayer VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	NextPiece INTEGER,
-	BoardID INTEGER REFERENCES Boards(BoardID)
+	BoardID INTEGER REFERENCES Boards(BoardID),
 	UnusedPiecesID INTEGER REFERENCES UnusedPieces(UnusedPiecesID)
 );`
 
