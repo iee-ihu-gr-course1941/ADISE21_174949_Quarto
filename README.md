@@ -23,6 +23,11 @@ or if you want lots of debug output, run:
 go test -v
 ```
 
+## Running test MySQL database
+```bash
+docker run --rm --name=mysql -p 3306:3306 -e MYSQL_INITDB_SKIP_TZINFO=yes -e MYSQL_USER=tester -e MYSQL_PASSWORD=Apasswd -e MYSQL_DATABASE=tester -e MYSQL_ROOT_PASSWORD=rootApasswd mysql:5
+```
+
 # Usage
 how to use with curl
 
@@ -58,3 +63,4 @@ returns:
 ```json
 {"game_id":"NvFtm757g","players":[{"username":"someuser","user_id":"G8boeMc7g"}],"activity_status":true,"game_state":{}}
 ```
+
