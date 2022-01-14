@@ -222,24 +222,11 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	//get game_id from path param
 	gameId, _ := params["game_id"]
 
-	//user trying to join
-	uid := &models.UserId{}
-	err := json.NewDecoder(r.Body).Decode(uid)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(BadReq))
-		return
-	}
+	//get game
 	g, err := gamedb.GetGame(gameId)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(NotFound))
-		return
-	}
-	// if requesting player is not player playing next, error out
-	if g.NextPlayer.UserId != uid.UserId {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(Unauth))
 		return
 	}
 	//check if two players have joined
@@ -256,7 +243,16 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
+	//user trying to join
+	uid := &models.UserId{}
+	uid.UserName = gameMove.UserName
+	uid.UserId = gameMove.UserId
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(UserNotFound))
+		return
+	}
 	//make sure the game move's next piece has been set
 	if gameMove.NextPiece == nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -265,6 +261,14 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	} else {
 		g.NextPiece = gameMove.NextPiece
 	}
+	// if requesting player is not player playing next, error out
+	if g.NextPlayer.UserId != uid.UserId {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(Unauth))
+		return
+	}
+	//if game move seems fine and user exists, put piece there
+	g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
 	//TODO: maybe return game state somewhere here
 	done := checkGameState(g.GameId)
 	if done {
