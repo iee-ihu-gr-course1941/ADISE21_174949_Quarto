@@ -152,7 +152,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 
 func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	//load basic game data
-	g := &models.Game{}
+	g := &models.Game{Board: models.EmptyBoard}
 	rows, err := r.client.Query(
 		`SELECT
 			GameId,
@@ -248,22 +248,22 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	for rows.Next() {
 		err = rows.Scan(
 			&bid,
-			&g.Board[0][0],
-			&g.Board[0][1],
-			&g.Board[0][2],
-			&g.Board[0][3],
-			&g.Board[1][0],
-			&g.Board[1][1],
-			&g.Board[1][2],
-			&g.Board[1][3],
-			&g.Board[2][0],
-			&g.Board[2][1],
-			&g.Board[2][2],
-			&g.Board[2][3],
-			&g.Board[3][0],
-			&g.Board[3][1],
-			&g.Board[3][2],
-			&g.Board[3][3],
+			&g.Board[0][0].Id,
+			&g.Board[0][1].Id,
+			&g.Board[0][2].Id,
+			&g.Board[0][3].Id,
+			&g.Board[1][0].Id,
+			&g.Board[1][1].Id,
+			&g.Board[1][2].Id,
+			&g.Board[1][3].Id,
+			&g.Board[2][0].Id,
+			&g.Board[2][1].Id,
+			&g.Board[2][2].Id,
+			&g.Board[2][3].Id,
+			&g.Board[3][0].Id,
+			&g.Board[3][1].Id,
+			&g.Board[3][2].Id,
+			&g.Board[3][3].Id,
 		)
 		if err != nil {
 			return nil, err
