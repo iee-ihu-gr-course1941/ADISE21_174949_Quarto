@@ -2,9 +2,9 @@ package mysql
 
 import (
 	"database/sql"
-	"strconv"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
+	"strconv"
 )
 
 type mysqlRepo struct {
@@ -299,7 +299,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 		return err
 	}
 	rows, err := r.client.Query(
-		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = `+strconv.Itoa(bid)+`;`,
+		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = ` + strconv.Itoa(bid) + `;`,
 	)
 	if err != nil {
 		return err
