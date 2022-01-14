@@ -158,6 +158,8 @@ type Game struct {
 
 // Move in a Game
 type GameMove struct {
+	UserName  string       `json:"username"`
+	UserId    string       `json:"user_id"`
 	PositionX int32        `json:"position_x"`
 	PositionY int32        `json:"position_y"`
 	NextPiece *QuartoPiece `json:"next_piece"`

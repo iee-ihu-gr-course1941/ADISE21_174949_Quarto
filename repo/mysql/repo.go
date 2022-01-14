@@ -130,9 +130,10 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 		return err
 	}
 	err = r.client.QueryRow(
-		`INSERT INTO Games (GameId, ActivityStatus, BoardId) VALUES (?, ?, ?);`,
+		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId) VALUES (?, ?, ?, ?);`,
 		g.GameId,
 		g.ActivityStatus,
+		g.NextPlayer.UserName,
 		bid,
 	).Err()
 	if err != nil {

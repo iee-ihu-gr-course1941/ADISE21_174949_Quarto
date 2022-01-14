@@ -108,18 +108,20 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
+	//check if user exists
+	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	//create a new game instance
 	g := &models.Game{
 		GameId:         shortid.MustGenerate(),
 		ActivityStatus: true,
 		Board:          models.EmptyBoard,
 		UnusedPieces:   models.AllQuartoPieces,
-	}
-	uid, err = gamedb.GetUserIdFromUserId(uid.UserId)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(BadReq))
-		return
+		NextPlayer:     uid,
 	}
 	//automatically invite the game creator to the game
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
