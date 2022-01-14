@@ -167,11 +167,12 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		return nil, err
 	}
 	defer rows.Close()
+	var np string
 	for rows.Next() {
 		err = rows.Scan(
 			&g.GameId,
 			&g.ActivityStatus,
-			&g.NextPlayer,
+			&np,
 			&g.NextPiece,
 			&g.Winner,
 		)
@@ -179,6 +180,11 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			return nil, err
 		}
 	}
+	npuid, err := r.GetUserIdFromUserName(np)
+	if err != nil {
+		return nil, err
+	}
+	g.NextPlayer = npuid
 	//load invitedplayers
 	var ipuname string
 	rows, err = r.client.Query(

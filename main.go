@@ -131,6 +131,12 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	} else {
+		g, err = gamedb.GetGame(g.GameId)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(ServerError))
+			return
+		}
 		json.NewEncoder(w).Encode(g)
 		return
 	}
