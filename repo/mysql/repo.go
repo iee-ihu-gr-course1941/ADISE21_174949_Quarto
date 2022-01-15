@@ -172,7 +172,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 
 func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	//load basic game data
-	g := &models.Game{Board: models.EmptyBoard}
+	g := &models.Game{Board: models.EmptyBoard, UnusedPieces: models.EmptyPieces}
 	rows, err := r.client.Query(
 		`SELECT
 			GameId,
@@ -266,6 +266,9 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		WHERE g.GameID = ?;`,
 		g.GameId,
 	)
+	if err != nil {
+		return nil, err
+	}
 	var bid int
 	for rows.Next() {
 		err = rows.Scan(
@@ -290,6 +293,46 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+	//TODO: load unusedpieces
+	rows, err = r.client.Query(
+		`SELECT up.*
+			FROM UnusedPieces AS up
+			JOIN Boards AS b
+			ON up.UnusedPiecesID = b.BoardID
+		WHERE b.BoardID = ?;`,
+		bid,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var upid int
+	for rows.Next() {
+		err = rows.Scan(
+			&upid,
+			&g.UnusedPieces[0].Id,
+			&g.UnusedPieces[1].Id,
+			&g.UnusedPieces[2].Id,
+			&g.UnusedPieces[3].Id,
+			&g.UnusedPieces[4].Id,
+			&g.UnusedPieces[5].Id,
+			&g.UnusedPieces[6].Id,
+			&g.UnusedPieces[7].Id,
+			&g.UnusedPieces[8].Id,
+			&g.UnusedPieces[9].Id,
+			&g.UnusedPieces[10].Id,
+			&g.UnusedPieces[11].Id,
+			&g.UnusedPieces[12].Id,
+			&g.UnusedPieces[13].Id,
+			&g.UnusedPieces[14].Id,
+			&g.UnusedPieces[15].Id,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i, up := range g.UnusedPieces {
+		g.UnusedPieces[i] = models.AllQuartoPieces[up.Id]
 	}
 	return g, nil
 }
