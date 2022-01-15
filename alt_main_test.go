@@ -1,26 +1,20 @@
 package main
 
-/*
 import (
 	"bytes"
-	"encoding/json"
-	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
-	"io"
+	rd "github.com/Pallinder/go-randomdata"
 	"net/http"
-	"runtime"
+	"strconv"
 	"testing"
 )
 
-var gid string
+func TestWinInGame(t *testing.T) {
+	g, u, u2 := gameInvitation(t)
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
 
-func TestAllReal(t *testing.T) {
-	t.SkipNow()
-	// clear the global storage
-	WipeState()
-	// define URL
-	testURL := "http://localhost:8000" + "/user"
+	//user 1 join game
 	// create some data in the form of an io.Reader from a string of json
-	jsonData := []byte(`{"username": "myself", "password": "mypasswd"}`)
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
 	// do a simple Post request with the above data
 	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
 	// check for request errors
@@ -29,24 +23,10 @@ func TestAllReal(t *testing.T) {
 	}
 	// be responsible and close the response some time
 	defer res.Body.Close()
-	// save response body to check later
-	body, err := io.ReadAll(res.Body)
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-	// response should contain json that can maps to the UserId type
-	u := &models.UserId{}
-	// try to unmarshal
-	err = json.Unmarshal(body, u)
-	// check for unmarshaling errors
-	if err != nil {
-		t.Error("unmarshal error:", err)
-	}
 
-	testURL = "http://localhost:8000" + "/game"
+	//user 2 join game
 	// create some data in the form of an io.Reader from a string of json
-	jsonData = []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
 	// do a simple Post request with the above data
 	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
 	// check for request errors
@@ -56,67 +36,12 @@ func TestAllReal(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 
-	// save response body to check later
-	body, err = io.ReadAll(res.Body)
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-
-	// response should contain json that can maps to the Game type
-	// set up empty Game
-	g := &models.Game{}
-	// try to unmarshal
-	err = json.Unmarshal(body, g)
-	// check for unmarshaling errors
-	if err != nil {
-		t.Error("unmarshal error:", err)
-	}
-	//t.Log("game res", string(body))
-	gid = g.GameId
-	// log currently invited users (should only be user "myself")
-	if len(g.InvitedPlayers) > 1 {
-		t.Error("more than 1 player is invited to the game")
-	} else if len(g.InvitedPlayers) < 1 {
-		t.Error("less than 1 player is invited to the game")
-	}
-	firstInvPlayer := g.InvitedPlayers[0].UserName
-	if firstInvPlayer != "myself" {
-		t.Error("expected first invited player is not who they should be")
-	}
-	t.Log("gID", g.GameId)
-
-	// define URL
-	testURL = "http://localhost:8000" + "/user"
-	// create some data in the form of an io.Reader from a string of json
-	jsonData = []byte(`{"username": "u222", "password": "mypass"}`)
+	//TODO: make u2 win and u not interfere
+	//user 1 play 1
+	str1 := `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData1 := []byte(str1)
 	// do a simple Post request with the above data
-	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
-	// check for request errors
-	if err != nil {
-		t.Error("POST error:", err)
-	}
-	// be responsible and close the response some time
-	defer res.Body.Close()
-	// save response body to check later
-	body, err = io.ReadAll(res.Body)
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-	// response should contain json that can maps to the UserId type
-	u2 := &models.UserId{}
-	// try to unmarshal
-	err = json.Unmarshal(body, u2)
-	// check for unmarshaling errors
-	if err != nil {
-		t.Error("unmarshal error:", err)
-	}
-
-	testURL = "http://localhost:8000" + "/game/" + g.GameId + "/invite/" + u2.UserName
-	jsonData = []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
-	// do a simple Post request with the above data
-	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
 	// check for request errors
 	if err != nil {
 		t.Error("POST error:", err)
@@ -124,64 +49,39 @@ func TestAllReal(t *testing.T) {
 	// be responsible and close the response some time
 	defer res.Body.Close()
 
-	// save response body to check later
-	body, err = io.ReadAll(res.Body)
-
-	// check for response body read errors
+	//user 2 play 1
+	str2 := `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":15}` + `}`
+	jsonPlayData2 := []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
 	if err != nil {
-		t.Error("resp.Body error:", err)
+		t.Error("POST error:", err)
 	}
-	// check if body has success message
-	if string(body) != MsgSuccess {
-		t.Error("inviting user did not yield success message")
-	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
 
-	runtime.GC()
-
-	for i, p := range g.InvitedPlayers {
-		t.Log("p", i, p.UserName, p.UserId)
+	//user 1 play 2
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":` + strconv.Itoa(rd.Number(16)) + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
 	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
 
-	if len(g.InvitedPlayers) <= 1 && cap(g.InvitedPlayers) <= 1 {
-		t.Error("second player wasn't added to the invitation list")
-		t.Log(g.InvitedPlayers[1])
+	//user 2 play 2
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x":` + strconv.Itoa(rd.Number(4)) + `, ` + `"position_y":` + strconv.Itoa(rd.Number(4)) + `, ` + `"next_piece": {"Id":14}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
 	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
 }
-
-/*
-func TestGetGame(t *testing.T) {
-	t.SkipNow()
-	// clear the global storage
-	WipeState()
-	// define URL
-	testURL := "http://localhost:8000" + "/game/" + gid
-	res, err := http.Get(testURL)
-	// check for request errors
-	if err != nil {
-		t.Error("GET error:", err)
-	}
-	// be responsible and close the response some time
-	defer res.Body.Close()
-
-	// save response body to check later
-	body, err := io.ReadAll(res.Body)
-
-	// check for response body read errors
-	if err != nil {
-		t.Error("resp.Body error:", err)
-	}
-	// set up empty Game
-	g := &Game{}
-	// try to unmarshal
-	err = json.Unmarshal(body, g)
-	// check for unmarshaling errors
-	if err != nil {
-		t.Error("unmarshal error:", err)
-		t.Log("res", res)
-		t.Log("bod", string(body))
-	}
-	for i, p := range g.InvitedPlayers {
-		t.Log("p", i, p.UserName, p.UserId)
-	}
-}
-*/
