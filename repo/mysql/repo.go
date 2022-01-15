@@ -305,6 +305,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if err != nil {
 		return err
 	}
+	//TODO: associate Board and UnusedPieces
 	rows, err := r.client.Query(
 		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = ` + strconv.Itoa(bid) + `;`,
 	)
