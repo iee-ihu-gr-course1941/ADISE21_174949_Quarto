@@ -328,11 +328,16 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			&g.UnusedPieces[15].Id,
 		)
 		if err != nil {
+			println("oof")
 			return nil, err
 		}
 	}
 	for i, up := range g.UnusedPieces {
-		g.UnusedPieces[i] = models.AllQuartoPieces[up.Id]
+		if up.Id != -1 && up.Id > 0 {
+			g.UnusedPieces[i] = models.AllQuartoPieces[up.Id]
+		} else {
+			g.UnusedPieces[i] = models.EmptyQuartoPiece
+		}
 	}
 	return g, nil
 }
@@ -387,7 +392,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	//remove piece played from unusedpieces
 	npid := gm.NextPiece.Id
 	err = r.client.QueryRow(
-		`UPDATE UnusedPieces SET up`+strconv.Itoa(npid)+` = NULL WHERE UnusedPiecesID = ?;`,
+		`UPDATE UnusedPieces SET up`+strconv.Itoa(npid)+` = -1 WHERE UnusedPiecesID = ?;`,
 		upid,
 	).Err()
 	if err != nil {

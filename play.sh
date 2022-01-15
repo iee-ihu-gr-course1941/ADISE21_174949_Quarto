@@ -63,3 +63,12 @@ PLAY_RES=$(curl -s -X POST\
 	-H 'Content-Type: application/json'\
 	-d "${PLAY_DATA}"\
 	"${LNK}")
+
+PLAY_DATA='{"username":"u2","user_id":"U2UID", "position_x":1, "position_y":0, "next_piece":{"Id":4,"Dark":false,"Short":false,"Hollow":false,"Round":true}}'
+
+PLAY_DATA=$(echo $PLAY_DATA | sed s/U2UID/${U2UID}/g)
+
+PLAY_RES=$(curl -s -X POST\
+	-H 'Content-Type: application/json'\
+	-d "${PLAY_DATA}"\
+	"${LNK}")

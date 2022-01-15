@@ -129,12 +129,16 @@ var EmptyBoard = [4][4]*QuartoPiece{
 	{&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}},
 }
 
+// Variable of empty allquartopieces
 var EmptyPieces = [16]*QuartoPiece{
 	&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1},
 	&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1},
 	&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1},
 	&QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1}, &QuartoPiece{Id: -1},
 }
+
+// Variable of empty quartopiece
+var EmptyQuartoPiece = &QuartoPiece{Id: -1}
 
 // Constant for maximum amount of players per game
 const MaxPlayers int = 2
