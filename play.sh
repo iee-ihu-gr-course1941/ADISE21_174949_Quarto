@@ -16,6 +16,14 @@ U1UID=$(echo ${U1} | jq -r '.user_id')
 # make game, get raw gid
 GID=$(curl -s -X POST -H "Content-Type: application/json" -d "${U1}" ${BASE_URL}/game | jq -r '.game_id')
 
+if [ "${GID}" == "null" ]; then
+	exit
+elif [ "${GID}" == "" ]; then
+	exit
+else
+	echo "game ID is: ${GID}"
+fi
+
 LNK="${BASE_URL}/game/${GID}"
 
 G=$(curl -s "${LNK}")
