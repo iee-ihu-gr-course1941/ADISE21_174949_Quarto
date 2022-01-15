@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"strconv"
+	"testing"
 )
 
 // Test HTTP server without logging middleware
