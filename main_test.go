@@ -248,13 +248,13 @@ func gameInvitation(t *testing.T) (*models.Game, *models.UserId, *models.UserId)
 		t.Error("inviting user did not yield success message")
 	}
 
-	// change URL, add the name of the user to be invited
+	// change URL to the game and its ID
 	testURL = testServer.URL + "/game/" + g.GameId
-	// do a simple Post request with the above data
+	// do a simple Get request to see the game state
 	res, err = http.Get(testURL)
 	// check for request errors
 	if err != nil {
-		t.Error("POST error:", err)
+		t.Error("GET error:", err)
 	}
 	// be responsible and close the response some time
 	defer res.Body.Close()
@@ -308,13 +308,13 @@ func TestInviteToGame(t *testing.T) {
 		t.Error("inviting user did not yield success message")
 	}
 
-	// change URL, add the name of the user to be invited
+	// change URL to the game and its ID
 	testURL = testServer.URL + "/game/" + g.GameId
-	// do a simple Post request with the above data
+	// do a simple Get request to see the game state
 	res, err = http.Get(testURL)
 	// check for request errors
 	if err != nil {
-		t.Error("POST error:", err)
+		t.Error("GET error:", err)
 	}
 	// be responsible and close the response some time
 	defer res.Body.Close()
@@ -380,5 +380,33 @@ func TestJoinGame(t *testing.T) {
 }
 
 func TestPlayInGame(t *testing.T) {
-	t.Log("TestPlayInGame not implemented yet")
+	g, u, u2 := gameInvitation(t)
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+
+	//user 1 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData2 := []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
+	// do a simple Post request with the above data
+	res2, err2 := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData2))
+	// check for request errors
+	if err2 != nil {
+		t.Error("POST error:", err2)
+	}
+	// be responsible and close the response some time
+	defer res2.Body.Close()
+
+	//user 1 play 1
+	t.Log("TestPlayInGame not fully implemented yet")
 }
