@@ -455,6 +455,4 @@ func TestPlayInGame(t *testing.T) {
 	}
 	// be responsible and close the response some time
 	defer res.Body.Close()
-
-	t.Log("TestPlayInGame not fully implemented yet")
 }
