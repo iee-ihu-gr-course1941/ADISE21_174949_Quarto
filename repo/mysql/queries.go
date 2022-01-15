@@ -97,6 +97,8 @@ var createUnusedPiecesTableQuery = `CREATE TABLE if not exists UnusedPieces (
 
 var createEmptyBoardQuery = `INSERT INTO Boards () VALUES ();`
 
+var createEmptyUnusedPiecesQuery = `INSERT INTO UnusedPieces () VALUES ();`
+
 var useridfromuseridRetrieveQuery = `SELECT * FROM UserIDs WHERE UserID = ?;`
 
 var useridfromusernameRetrieveQuery = `SELECT * FROM UserIDs WHERE UserNickName = ?;`

@@ -37,6 +37,10 @@ func newMysqlClient(url string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = client.Exec(createUnusedPiecesTableQuery)
+	if err != nil {
+		return nil, err
+	}
 	_, err = client.Exec(createInvitedPlayerTableQuery)
 	if err != nil {
 		return nil, err
@@ -121,20 +125,29 @@ func (r *mysqlRepo) GetUserIdFromUserName(username string) (*models.UserId, erro
 }
 
 func (r *mysqlRepo) AddGame(g *models.Game) error {
-	rs, err := r.client.Exec(createEmptyBoardQuery)
+	rs1, err := r.client.Exec(createEmptyBoardQuery)
 	if err != nil {
 		return err
 	}
-	bid, err := rs.LastInsertId()
+	bid, err := rs1.LastInsertId()
+	if err != nil {
+		return err
+	}
+	rs2, err := r.client.Exec(createEmptyUnusedPiecesQuery)
+	if err != nil {
+		return err
+	}
+	upid, err := rs2.LastInsertId()
 	if err != nil {
 		return err
 	}
 	err = r.client.QueryRow(
-		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId) VALUES (?, ?, ?, ?);`,
+		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId, UnusedPiecesId) VALUES (?, ?, ?, ?, ?);`,
 		g.GameId,
 		g.ActivityStatus,
 		g.NextPlayer.UserName,
 		bid,
+		upid,
 	).Err()
 	if err != nil {
 		return err
@@ -305,9 +318,8 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if err != nil {
 		return err
 	}
-	//TODO: associate Board and UnusedPieces
 	rows, err := r.client.Query(
-		`SELECT UnusedPiecesId FROM Boards WHERE BoardID = ` + strconv.Itoa(bid) + `;`,
+		`SELECT UnusedPiecesId FROM Games WHERE BoardID = ` + strconv.Itoa(bid) + `;`,
 	)
 	if err != nil {
 		return err
@@ -327,14 +339,16 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if err != nil {
 		return err
 	}
-	err = r.client.QueryRow(gameUpdateQuery,
-		g.ActivityStatus,
-		g.NextPlayer.UserName,
-		g.NextPiece.Id,
-		g.Winner.UserName,
-	).Err()
-	if err != nil {
-		return err
+	if g.Winner != nil {
+		err = r.client.QueryRow(gameUpdateQuery,
+			g.ActivityStatus,
+			g.NextPlayer.UserName,
+			g.NextPiece.Id,
+			g.Winner.UserName,
+		).Err()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

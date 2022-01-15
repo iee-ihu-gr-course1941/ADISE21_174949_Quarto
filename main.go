@@ -127,6 +127,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	g.InvitedPlayers = append(g.InvitedPlayers, uid)
 	err = gamedb.AddGame(g)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
 		return
@@ -282,8 +283,8 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		g.ActivityStatus = false
 		g.Winner = uid
 		err := gamedb.ChangeGame(g, gameMove)
-		log.Println("changegame error1:", err)
 		if err != nil {
+			log.Println("changegame error1:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error": "couldn't register move"}`))
 		}
@@ -297,8 +298,8 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			g.NextPlayer = g.ActivePlayers[0]
 		}
 		err := gamedb.ChangeGame(g, gameMove)
-		log.Println("changegame error2:", err)
 		if err != nil {
+			log.Println("changegame error2:", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"error": "couldn't register move"}`))
 			return
