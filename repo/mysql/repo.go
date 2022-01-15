@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/iee-ihu-gr-course1941/ADISE21_174949_Quarto/models"
+	"math/rand"
 	"strconv"
+	"time"
 )
 
 type mysqlRepo struct {
@@ -125,6 +127,7 @@ func (r *mysqlRepo) GetUserIdFromUserName(username string) (*models.UserId, erro
 }
 
 func (r *mysqlRepo) AddGame(g *models.Game) error {
+	//create default/empty board and unusedpieces rows for use in game
 	rs1, err := r.client.Exec(createEmptyBoardQuery)
 	if err != nil {
 		return err
@@ -141,17 +144,21 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 	if err != nil {
 		return err
 	}
+	//add new game to database
+	rand.Seed(time.Now().Unix())
 	err = r.client.QueryRow(
-		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId, UnusedPiecesId) VALUES (?, ?, ?, ?, ?);`,
+		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId, UnusedPiecesId, NextPiece) VALUES (?, ?, ?, ?, ?, ?);`,
 		g.GameId,
 		g.ActivityStatus,
 		g.NextPlayer.UserName,
 		bid,
 		upid,
+		rand.Intn(16), //random next piece
 	).Err()
 	if err != nil {
 		return err
 	}
+	//invite game creator to the game
 	err = r.client.QueryRow(
 		`INSERT INTO InvitedPlayers (GameId, UserName) VALUE (?, ?);`,
 		g.GameId,
@@ -180,19 +187,21 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var np string
+	var np string //next player
+	var npid int  //next piece id
 	for rows.Next() {
 		err = rows.Scan(
 			&g.GameId,
 			&g.ActivityStatus,
 			&np,
-			&g.NextPiece,
+			&npid,
 			&g.Winner,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
+	g.NextPiece = models.AllQuartoPieces[npid]
 	npuid, err := r.GetUserIdFromUserName(np)
 	if err != nil {
 		return nil, err
@@ -292,7 +301,7 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	//board
 	var bid int = -1
-	err := r.client.QueryRow(`SELECT BoardID FROM Games WHERE GameID = ?`, g.GameId).Scan(&bid)
+	err := r.client.QueryRow(`SELECT BoardID FROM Games WHERE GameID = ?;`, g.GameId).Scan(&bid)
 	if err != nil || bid == -1 {
 		return err
 	}
@@ -318,6 +327,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if err != nil {
 		return err
 	}
+	//get id of unusedpieces row associated with this game/board
 	rows, err := r.client.Query(
 		`SELECT UnusedPiecesId FROM Games WHERE BoardID = ` + strconv.Itoa(bid) + `;`,
 	)
@@ -331,20 +341,38 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 			return err
 		}
 	}
-	pieceId := gm.NextPiece.Id
+	//remove piece played from unusedpieces
+	npid := gm.NextPiece.Id
 	err = r.client.QueryRow(
-		`UPDATE UnusedPieces SET up`+strconv.Itoa(pieceId)+` = NULL WHERE UnusedPiecesID = ?;`,
-		upid, //TODO: get unusedpieces id
+		`UPDATE UnusedPieces SET up`+strconv.Itoa(npid)+` = NULL WHERE UnusedPiecesID = ?;`,
+		upid,
 	).Err()
 	if err != nil {
 		return err
 	}
+	//update next piece
+	err = r.client.QueryRow(
+		`UPDATE Games SET NextPiece = `+strconv.Itoa(npid)+` WHERE GameID = ?;`,
+		g.GameId,
+	).Err()
+	if err != nil {
+		return err
+	}
+	//update next player and piece or declare winner
 	if g.Winner != nil {
-		err = r.client.QueryRow(gameUpdateQuery,
+		err = r.client.QueryRow(gameUpdateQueryWithWinner,
 			g.ActivityStatus,
+			g.Winner.UserName,
+			g.GameId,
+		).Err()
+		if err != nil {
+			return err
+		}
+	} else {
+		err = r.client.QueryRow(gameUpdateQuery,
 			g.NextPlayer.UserName,
 			g.NextPiece.Id,
-			g.Winner.UserName,
+			g.GameId,
 		).Err()
 		if err != nil {
 			return err

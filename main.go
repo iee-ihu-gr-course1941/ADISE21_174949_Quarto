@@ -134,6 +134,7 @@ func createGame(w http.ResponseWriter, r *http.Request) {
 	} else {
 		g, err = gamedb.GetGame(g.GameId)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(ServerError))
 			return
@@ -268,6 +269,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		g.NextPiece = gameMove.NextPiece
+		log.Println("g.NextPiece:", g.NextPiece)
 	}
 	// if requesting player is not player playing next, error out
 	if g.NextPlayer.UserId != uid.UserId {
@@ -296,6 +298,10 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			g.NextPlayer = g.ActivePlayers[1]
 		} else if uid.UserName == g.ActivePlayers[1].UserName {
 			g.NextPlayer = g.ActivePlayers[0]
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "couldn't switch next player"}`))
+			return
 		}
 		err := gamedb.ChangeGame(g, gameMove)
 		if err != nil {

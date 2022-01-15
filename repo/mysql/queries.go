@@ -138,10 +138,15 @@ var gameInsertQuery = `INSERT INTO Games (
 ) VALUES (?, ?, ?, ?, ?);`
 
 var gameUpdateQuery = `UPDATE Games
+	SET NextPlayer = ?,
+		NextPiece = ?
+	WHERE GameID = ?;`
+
+var gameUpdateQueryWithWinner = `UPDATE Games
 	SET ActivityStatus = ?,
-	NextPlayer = ?,
-	NextPiece = ?,
-	Winner = ?,
+		NextPlayer = NULL,
+		NextPiece = NULL,
+		Winner = ?
 	WHERE GameID = ?;`
 
 var boardUpdateQuery = `UPDATE Boards
