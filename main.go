@@ -264,8 +264,8 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 	}
 	//make sure the game move's next piece has been set
 	if gameMove.NextPiece == nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(ServerError))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
 		return
 	} else {
 		g.NextPiece = gameMove.NextPiece
@@ -278,7 +278,19 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//if game move seems fine and user exists, put piece there
-	g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
+	if g.Board[gameMove.PositionX][gameMove.PositionY].Id != -1 {
+		if g.Board[gameMove.PositionX][gameMove.PositionY] != nil {
+			g.Board[gameMove.PositionX][gameMove.PositionY] = g.NextPiece
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"error": "spot in the board is nil}"`))
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "spot in the board is not empty}"`))
+		return
+	}
 	//TODO: maybe return game state somewhere here
 	done := checkGameState(g.GameId)
 	if done {
@@ -311,6 +323,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		getGame(w, r)
 		return
 	}
 }
