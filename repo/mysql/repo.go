@@ -146,6 +146,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 	}
 	//add new game to database
 	rand.Seed(time.Now().Unix())
+	rand.Intn(16) //random next piece TODO: use in the below query
 	err = r.client.QueryRow(
 		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId, UnusedPiecesId, NextPiece) VALUES (?, ?, ?, ?, ?, ?);`,
 		g.GameId,
@@ -153,7 +154,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 		g.NextPlayer.UserName,
 		bid,
 		upid,
-		rand.Intn(16), //random next piece
+		7,
 	).Err()
 	if err != nil {
 		return err
@@ -346,6 +347,7 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 	return nil, nil
 }
 
+//TODO: check if piece is being placed in a correct place and has not already been placed
 func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	//board
 	var bid int = -1
