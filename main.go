@@ -254,6 +254,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
+	//see if nextpiece has valid id and replace player-supplied values
 	gmnpid := gameMove.NextPiece.Id
 	if gmnpid > -1 && gmnpid < 16 {
 		gameMove.NextPiece = models.AllQuartoPieces[gmnpid]
@@ -262,7 +263,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
-	//user trying to join
+	//user trying to play
 	uid := &models.UserId{}
 	uid.UserName = gameMove.UserName
 	uid.UserId = gameMove.UserId
@@ -272,21 +273,26 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(UserNotFound))
 		return
 	}
-	//make sure the game move's next piece has been set
-	if gameMove.NextPiece == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(BadReq))
-		return
-	} else {
-		g.NextPiece = gameMove.NextPiece
-	}
 	// if requesting player is not player playing next, error out
 	if g.NextPlayer.UserId != uid.UserId {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte(Unauth))
 		return
 	}
-	//if game move seems fine and user exists, put piece there
+	//make sure the game move's next piece has been set
+	if gameMove.NextPiece == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
+	/* game should have piece set from prev player
+	gamemove should have piece set from cur player
+	I think
+		else {
+			g.NextPiece = gameMove.NextPiece //TODO: sus
+		}
+	*/
+	//if game move seems fine, put piece there
 	if g.Board[gameMove.PositionX][gameMove.PositionY].Id != -1 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error": "spot in the board is not empty}"`))
@@ -299,7 +305,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error": "spot in the board is nil}"`))
 		return
 	}
-	done := checkGameState(g.GameId)
+	done := checkGameState(g)
 	log.Println("done status:", done)
 	if done {
 		g.ActivityStatus = false
@@ -338,11 +344,13 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func ifQuarto(qp [4]*models.QuartoPiece) bool {
+	log.Println("piece IDs of table being checked", qp[0].Id, qp[1].Id, qp[2].Id, qp[3].Id)
 	if qp[0].Dark == qp[1].Dark == qp[2].Dark == qp[3].Dark {
 		for _, p := range qp {
 			if p.Id != -1 {
 				continue
 			} else {
+				log.Println("some id -1")
 				return false
 			}
 		}
@@ -352,6 +360,7 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 			if p.Id != -1 {
 				continue
 			} else {
+				log.Println("some id -1")
 				return false
 			}
 		}
@@ -361,31 +370,27 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 			if p.Id != -1 {
 				continue
 			} else {
+				log.Println("some id -1")
 				return false
 			}
 		}
 		return true
 	} else if qp[0].Round == qp[1].Round == qp[2].Round == qp[3].Round {
 		for _, p := range qp {
-			if p.Id != -1 {
+			if p.Id > -1 {
 				continue
 			} else {
+				log.Println("some id -1")
 				return false
 			}
 		}
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 //TODO: fix and convert to use quartostorage interface
-func checkGameState(gameId string) bool {
-	g, err := gamedb.GetGame(gameId)
-	if err != nil {
-		log.Println("cGS error:", err)
-		return false
-	}
+func checkGameState(g *models.Game) bool {
 	board := g.Board
 	unusedPieces := g.UnusedPieces
 	log.Println("unusedPieces", unusedPieces)

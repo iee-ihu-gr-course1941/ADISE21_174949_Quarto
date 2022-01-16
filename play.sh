@@ -76,7 +76,7 @@ PLAY_RES=$(curl -s -X POST\
 	"${LNK}")
 
 #user 1 play 2
-PLAY_DATA='{"username":"user","user_id":"U1UID", "position_x":0, "position_y":2, "next_piece":{"Id":1}}'
+PLAY_DATA='{"username":"user","user_id":"U1UID", "position_x":3, "position_y":1, "next_piece":{"Id":1}}'
 
 PLAY_DATA=$(echo $PLAY_DATA | sed s/U1UID/${U1UID}/g)
 
@@ -135,4 +135,4 @@ PLAY_RES=$(curl -s -X POST\
 	-d "${PLAY_DATA}"\
 	"${LNK}")
 
-curl -s "${BASE_URL}/game/${GID}" | jq -r '.board'
+curl -s "${BASE_URL}/game/${GID}"

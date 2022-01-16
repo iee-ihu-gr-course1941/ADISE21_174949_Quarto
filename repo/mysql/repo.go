@@ -147,6 +147,8 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 	//add new game to database
 	rand.Seed(time.Now().Unix())
 	rand.Intn(16) //random next piece TODO: use in the below query
+	//hardcode initial nextpiece
+	g.NextPiece = models.AllQuartoPieces[7]
 	err = r.client.QueryRow(
 		`INSERT INTO Games (GameId, ActivityStatus, NextPlayer, BoardId, UnusedPiecesId, NextPiece) VALUES (?, ?, ?, ?, ?, ?);`,
 		g.GameId,
@@ -154,7 +156,7 @@ func (r *mysqlRepo) AddGame(g *models.Game) error {
 		g.NextPlayer.UserName,
 		bid,
 		upid,
-		7,
+		g.NextPiece.Id, //using hardcoded value from above, switch to rand later
 	).Err()
 	if err != nil {
 		return err
@@ -347,7 +349,6 @@ func (r *mysqlRepo) GetAllGames() ([]*models.Game, error) {
 	return nil, nil
 }
 
-//TODO: check if piece is being placed in a correct place and has not already been placed
 func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	//board
 	var bid int = -1
@@ -392,22 +393,22 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 		}
 	}
 	//remove piece played from unusedpieces
-	npid := gm.NextPiece.Id
+	//npid := gm.NextPiece.Id //TODO: sus
 	err = r.client.QueryRow(
-		`UPDATE UnusedPieces SET up`+strconv.Itoa(npid)+` = -1 WHERE UnusedPiecesID = ?;`,
+		`UPDATE UnusedPieces SET up`+strconv.Itoa(g.NextPiece.Id)+` = -1 WHERE UnusedPiecesID = ?;`,
 		upid,
 	).Err()
 	if err != nil {
 		return err
 	}
 	//update next piece
-	err = r.client.QueryRow(
-		`UPDATE Games SET NextPiece = `+strconv.Itoa(npid)+` WHERE GameID = ?;`,
-		g.GameId,
-	).Err()
-	if err != nil {
-		return err
-	}
+	//err = r.client.QueryRow(
+	//	`UPDATE Games SET NextPiece = `+strconv.Itoa(gm.NextPiece.Id)+` WHERE GameID = ?;`,
+	//	g.GameId,
+	//).Err()
+	//if err != nil {
+	//	return err
+	//}
 	//update next player and piece or declare winner
 	if g.Winner != nil {
 		err = r.client.QueryRow(gameUpdateQueryWithWinner,
@@ -421,7 +422,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	} else {
 		err = r.client.QueryRow(gameUpdateQuery,
 			g.NextPlayer.UserName,
-			g.NextPiece.Id,
+			gm.NextPiece.Id, //TODO: sus
 			g.GameId,
 		).Err()
 		if err != nil {
