@@ -334,7 +334,7 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 		}
 	}
 	for i, up := range g.UnusedPieces {
-		if up.Id != -1 && up.Id > 0 {
+		if up.Id > -1 {
 			g.UnusedPieces[i] = models.AllQuartoPieces[up.Id]
 		} else {
 			g.UnusedPieces[i] = models.EmptyQuartoPiece

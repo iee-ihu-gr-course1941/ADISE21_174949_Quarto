@@ -194,6 +194,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 	uid := &models.UserId{}
 	err := json.NewDecoder(r.Body).Decode(uid)
 	if err != nil {
+		log.Println("bad req err1:", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
 		return
@@ -213,6 +214,7 @@ func joinGame(w http.ResponseWriter, r *http.Request) {
 
 	err = gamedb.JoinUser(uid.UserId, g.GameId)
 	if err != nil {
+		log.Println("bad req err2:", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(BadReq))
 		return
@@ -252,6 +254,14 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(BadReq))
 		return
 	}
+	gmnpid := gameMove.NextPiece.Id
+	if gmnpid > -1 && gmnpid < 16 {
+		gameMove.NextPiece = models.AllQuartoPieces[gmnpid]
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReq))
+		return
+	}
 	//user trying to join
 	uid := &models.UserId{}
 	uid.UserName = gameMove.UserName
@@ -269,7 +279,6 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		g.NextPiece = gameMove.NextPiece
-		log.Println("g.NextPiece:", g.NextPiece)
 	}
 	// if requesting player is not player playing next, error out
 	if g.NextPlayer.UserId != uid.UserId {
@@ -290,8 +299,8 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error": "spot in the board is nil}"`))
 		return
 	}
-	//TODO: maybe return game state somewhere here
 	done := checkGameState(g.GameId)
+	log.Println("done status:", done)
 	if done {
 		g.ActivityStatus = false
 		g.Winner = uid
@@ -299,10 +308,11 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("changegame error1:", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "couldn't register move"}`))
+			w.Write([]byte(`{"error": "couldn't register move 1"}`))
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message": "` + uid.UserName + ` is the winner!"}`))
+		log.Println(uid.UserName, "won")
 		return
 	} else {
 		if uid.UserName == g.ActivePlayers[0].UserName {
@@ -318,7 +328,7 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("changegame error2:", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error": "couldn't register move"}`))
+			w.Write([]byte(`{"error": "couldn't register move 2"}`))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -328,14 +338,41 @@ func playInGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func ifQuarto(qp [4]*models.QuartoPiece) bool {
-	//TODO: replace with x, y, z, w vars for readability
 	if qp[0].Dark == qp[1].Dark == qp[2].Dark == qp[3].Dark {
+		for _, p := range qp {
+			if p.Id != -1 {
+				continue
+			} else {
+				return false
+			}
+		}
 		return true
 	} else if qp[0].Short == qp[1].Short == qp[2].Short == qp[3].Short {
+		for _, p := range qp {
+			if p.Id != -1 {
+				continue
+			} else {
+				return false
+			}
+		}
 		return true
 	} else if qp[0].Hollow == qp[1].Hollow == qp[2].Hollow == qp[3].Hollow {
+		for _, p := range qp {
+			if p.Id != -1 {
+				continue
+			} else {
+				return false
+			}
+		}
 		return true
 	} else if qp[0].Round == qp[1].Round == qp[2].Round == qp[3].Round {
+		for _, p := range qp {
+			if p.Id != -1 {
+				continue
+			} else {
+				return false
+			}
+		}
 		return true
 	} else {
 		return false
@@ -346,6 +383,7 @@ func ifQuarto(qp [4]*models.QuartoPiece) bool {
 func checkGameState(gameId string) bool {
 	g, err := gamedb.GetGame(gameId)
 	if err != nil {
+		log.Println("cGS error:", err)
 		return false
 	}
 	board := g.Board
@@ -356,15 +394,16 @@ func checkGameState(gameId string) bool {
 	diag2 := [4]*models.QuartoPiece{board[0][3], board[1][2], board[2][1], board[3][0]}
 	// Go through the board and check if anything qualifies as quarto
 	for i, row := range board {
-		log.Println(i, row)
+		log.Println("currently at row:", i)
+		// TODO: remove commented checks since nothing is nil, they have Id -1 instead
 		// Don't bother if 4 pieces haven't been on the board
-		if cap(unusedPieces) > 12 {
-			break
-		}
-		// Don't bother if row isn't full
-		if cap(row) < 4 {
-			break
-		}
+		//if cap(unusedPieces) > 12 {
+		//	break
+		//}
+		//// Don't bother if row isn't full
+		//if cap(row) < 4 {
+		//	break
+		//}
 		// Check if current row has quarto
 		if ifQuarto(row) {
 			return true
@@ -372,20 +411,20 @@ func checkGameState(gameId string) bool {
 		// Collect items from column
 		var col [4]*models.QuartoPiece
 		for j, colItem := range row {
-			log.Println(j, col)
-			log.Println(j, colItem)
+			//log.Println(j, col)
+			//log.Println(j, colItem)
 			col[j] = colItem
 		}
 		// Check if there are 4 pieces in the column
-		if cap(col) == 4 && ifQuarto(col) {
+		if ifQuarto(col) {
 			return true
 		}
 		// Check if there are 4 pieces in the diagonal
-		if cap(diag1) == 4 && ifQuarto(diag1) {
+		if ifQuarto(diag1) {
 			return true
 		}
 		// Check if there are 4 pieces in the reverse diagonal
-		if cap(diag2) == 4 && ifQuarto(diag2) {
+		if ifQuarto(diag2) {
 			return true
 		}
 	}

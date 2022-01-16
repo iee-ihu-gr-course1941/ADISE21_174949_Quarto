@@ -15,6 +15,190 @@ import (
 // Test HTTP server without logging middleware
 var testServer *httptest.Server = httptest.NewServer(setupRouter(false))
 
+func TestWinInGame(t *testing.T) {
+	g, u, u2 := gameInvitation(t)
+	t.Log("inv players: ", g.InvitedPlayers[0], g.InvitedPlayers[1])
+	testURL := testServer.URL + "/game/" + g.GameId + "/join"
+
+	//user 1 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err := http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err := io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 1 did not yield success message")
+	}
+
+	//user 2 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 2 did not yield success message")
+	}
+
+	//change url to play
+	testURL = testServer.URL + "/game/" + g.GameId + "/play"
+
+	//TODO: make u2 win and u not interfere
+	//user 1 play 1
+	str1 := `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 2, ` + `"position_y": 0, ` + `"next_piece": {"Id":15` + `}` + `}`
+	jsonPlayData1 := []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 1
+	str2 := `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 0, ` + `"next_piece": {"Id":0}` + `}`
+	jsonPlayData2 := []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 2
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 2, ` + `"position_y": 1, ` + `"next_piece": {"Id":14` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 2
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 1, ` + `"next_piece": {"Id":1}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 3
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 3, ` + `"position_y": 0, ` + `"next_piece": {"Id":13` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 2 play 3
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 2, ` + `"next_piece": {"Id":2}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	//user 1 play 4
+	str1 = `{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `", ` + `"position_x": 3, ` + `"position_y": 1, ` + `"next_piece": {"Id":12` + `}` + `}`
+	jsonPlayData1 = []byte(str1)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData1))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	winMsg := `{"message": "` + u.UserName + ` is the winner!"}`
+	if string(body) != winMsg {
+		t.Log("user 1 didn't win")
+	}
+
+	//user 2 play 4
+	str2 = `{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `", ` + `"position_x": 0, ` + `"position_y": 3, ` + `"next_piece": {"Id":6}` + `}`
+	jsonPlayData2 = []byte(str2)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonPlayData2))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	winMsg = `{"message": "` + u2.UserName + ` is the winner!"}`
+	if string(body) != winMsg {
+		t.Log("user 2 didn't win")
+	}
+}
+
 // Function for creating a user for use only outside TestCreateUser
 func randomUserCreation(t *testing.T) *models.UserId {
 	// define URL
@@ -218,6 +402,7 @@ func TestCreateGame(t *testing.T) {
 	t.Log(g)
 }
 
+// Function for creating a game, and inviting the game creator and one more player
 func gameInvitation(t *testing.T) (*models.Game, *models.UserId, *models.UserId) {
 	// create a game which also creates random user
 	g := gameCreation(t)
@@ -246,8 +431,10 @@ func gameInvitation(t *testing.T) (*models.Game, *models.UserId, *models.UserId)
 	}
 	// check if body has success message
 	if string(body) != MsgSuccess {
-		t.Error("inviting user did not yield success message")
+		t.Error("gameInvitation: inviting user did not yield success message")
 	}
+
+	t.Log("user:", u, "invited to game:", g.GameId)
 
 	// change URL to the game and its ID
 	testURL = testServer.URL + "/game/" + g.GameId
@@ -353,6 +540,7 @@ func TestJoinGame(t *testing.T) {
 	testURL := testServer.URL + "/game/" + g.GameId + "/join"
 	t.Log(testURL)
 	t.Log(u, u2)
+	//user 1 join game
 	// create some data in the form of an io.Reader from a string of json
 	jsonData := []byte(`{"username": "` + u.UserName + `", "user_id": "` + u.UserId + `"}`)
 	// do a simple Post request with the above data
@@ -376,7 +564,34 @@ func TestJoinGame(t *testing.T) {
 	t.Log("body", string(body))
 	// check if body has success message
 	if string(body) != MsgSuccess {
-		t.Error("inviting user did not yield success message")
+		t.Error("inviting user 1 did not yield success message")
+	}
+
+	//user 2 join game
+	// create some data in the form of an io.Reader from a string of json
+	jsonData = []byte(`{"username": "` + u2.UserName + `", "user_id": "` + u2.UserId + `"}`)
+	// do a simple Post request with the above data
+	res, err = http.Post(testURL, "application/json", bytes.NewBuffer(jsonData))
+	// check for request errors
+	if err != nil {
+		t.Error("POST error:", err)
+	}
+	// be responsible and close the response some time
+	defer res.Body.Close()
+	// log response
+	t.Log("res", res)
+
+	// save response body to check later
+	body, err = io.ReadAll(res.Body)
+	// check for response body read errors
+	if err != nil {
+		t.Error("resp.Body error:", err)
+	}
+	// log response body
+	t.Log("body", string(body))
+	// check if body has success message
+	if string(body) != MsgSuccess {
+		t.Error("inviting user 2 did not yield success message")
 	}
 }
 
