@@ -78,7 +78,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//TODO: if user authorized
+//TODO: check if user authorized
 func getGame(w http.ResponseWriter, r *http.Request) {
 	//log.Println("getGame called")
 	w.Header().Set("Content-Type", "application/json")

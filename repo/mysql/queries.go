@@ -33,7 +33,7 @@ var createUnusedPieceTableQuery = `CREATE TABLE if not exists UnusedPieces (
 var createGameTableQuery = `CREATE TABLE if not exists Games (
 	GameID VARCHAR(100) PRIMARY KEY NOT NULL,
 	ActivityStatus BOOLEAN NOT NULL DEFAULT FALSE,
-	Winner VARCHAR(100) REFERENCES UserIDs(UserNickname),
+	Winner VARCHAR(100) DEFAULT '' REFERENCES UserIDs(UserNickname),
 	NextPlayer VARCHAR(100) REFERENCES UserIDs(UserNickname),
 	NextPiece INTEGER,
 	BoardID INTEGER REFERENCES Boards(BoardID),
@@ -50,6 +50,7 @@ var createInvitedPlayerTableQuery = `CREATE TABLE if not exists InvitedPlayers (
 var createActivePlayerTableQuery = `CREATE TABLE if not exists ActivePlayers (
 	GameID VARCHAR(100) NOT NULL REFERENCES Games(GameID),
 	UserName VARCHAR(100) NOT NULL REFERENCES UserIDs(UserNickname),
+	JoinTime TIMESTAMP DEFAULT NOW(),
 	PRIMARY KEY (GameID, UserName)
 );`
 
@@ -144,8 +145,8 @@ var gameUpdateQuery = `UPDATE Games
 
 var gameUpdateQueryWithWinner = `UPDATE Games
 	SET ActivityStatus = ?,
-		NextPlayer = NULL,
-		NextPiece = NULL,
+		NextPlayer = ?,
+		NextPiece = -1,
 		Winner = ?
 	WHERE GameID = ?;`
 

@@ -192,24 +192,39 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 	defer rows.Close()
 	var np string //next player
 	var npid int  //next piece id
+	var wun string //winner username
 	for rows.Next() {
 		err = rows.Scan(
 			&g.GameId,
 			&g.ActivityStatus,
 			&np,
 			&npid,
-			&g.Winner,
+			&wun,
 		)
 		if err != nil {
 			return nil, err
 		}
 	}
+	//load nextpiece details from allquartopieces
+	if npid > -1 {
 	g.NextPiece = models.AllQuartoPieces[npid]
+	} else {
+		g.NextPiece = nil
+	}
+	//load nextplayer
 	npuid, err := r.GetUserIdFromUserName(np)
 	if err != nil {
 		return nil, err
 	}
 	g.NextPlayer = npuid
+	//load winner
+	if wun != "" {
+	wuid, err := r.GetUserIdFromUserName(wun)
+	if err != nil {
+		return nil, err
+	}
+	g.Winner = wuid
+	}
 	//load invitedplayers
 	var ipuname string
 	rows, err = r.client.Query(
@@ -297,7 +312,7 @@ func (r *mysqlRepo) GetGame(gameid string) (*models.Game, error) {
 			return nil, err
 		}
 	}
-	//TODO: load unusedpieces
+	//load unusedpieces
 	rows, err = r.client.Query(
 		`SELECT up.*
 			FROM UnusedPieces AS up
@@ -393,7 +408,6 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 		}
 	}
 	//remove piece played from unusedpieces
-	//npid := gm.NextPiece.Id //TODO: sus
 	err = r.client.QueryRow(
 		`UPDATE UnusedPieces SET up`+strconv.Itoa(g.NextPiece.Id)+` = -1 WHERE UnusedPiecesID = ?;`,
 		upid,
@@ -413,6 +427,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	if g.Winner != nil {
 		err = r.client.QueryRow(gameUpdateQueryWithWinner,
 			g.ActivityStatus,
+			g.NextPlayer.UserName,
 			g.Winner.UserName,
 			g.GameId,
 		).Err()
@@ -422,7 +437,7 @@ func (r *mysqlRepo) ChangeGame(g *models.Game, gm *models.GameMove) error {
 	} else {
 		err = r.client.QueryRow(gameUpdateQuery,
 			g.NextPlayer.UserName,
-			gm.NextPiece.Id, //TODO: sus
+			gm.NextPiece.Id,
 			g.GameId,
 		).Err()
 		if err != nil {
